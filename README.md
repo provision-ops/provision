@@ -22,7 +22,7 @@ You add your site's URLs and path to your source code using `provision save`and 
 
 Provision 4.x is a work in progress. If you want open source Drupal hosting now, please see [the Aegir Project](https://www.aegirproject.org/).
 
-Currently being developed on GitHub: [github.com/aegir-project/provision](https://github.com/aegir-project/provision).
+Currently being developed on GitHub: [github.com/provision4/provision](https://github.com/provision4/provision).
 
 Documentation is still in progress, currently available at [aegir.gitbooks.io/provision](https://aegir.gitbooks.io/provision/).
 
