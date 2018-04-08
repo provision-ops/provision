@@ -1,6 +1,7 @@
-# Summary
+# Table of contents
 
 * [Introduction](README.md)
-* [Developing Provision](docs/developing-provision.md)
-* [Customizing Provision](docs/customizing-provision.md)
+* [Developing Provision](developing-provision.md)
+* [Customizing Provision](customizing-provision.md)
+* [Getting Started](untitled.md)
 

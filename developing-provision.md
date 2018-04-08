@@ -37,17 +37,13 @@ A Context represents an object we are tracking, either a Server, Platform, or Si
 
 Each context type has different properties, defined in the `option_documentation()` method.
 
-`$context->save()` will save the context properties into a YML file.  Run provision status to reveal the path to a context's YML file.
+`$context->save()` will save the context properties into a YML file. Run provision status to reveal the path to a context's YML file.
 
-`$context->verifyCommand() `is triggered when the `provision verify` command is run
+`$context->verifyCommand()`is triggered when the `provision verify` command is run
 
 ### [class ServerContext](https://github.com/aegir-project/provision/blob/4.x/src/Context/ServerContext.php)
 
 ServerContext "provide" services, while all others "subscribe" to them.
 
 Use `ServerContext::shell_exec()` to easily run commands in the Server's config directory, while hiding output, throwing exception with error messages, and showing output when running with `-v`.
-
-### 
-
-
 
