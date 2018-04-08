@@ -1,5 +1,5 @@
 {
-    "name": "provision/cli",
+    "name": "provision4/cli",
     "description": "The Website Provisioning CLI",
     "keywords": ["Hosting", "Drupal", "Aegir"],
     "homepage": "https://github.com/provision4/provision",
