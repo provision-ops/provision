@@ -23,18 +23,46 @@ $ sudo ln -s $PWD/bin/provision /usr/local/bin/pro
 ```
 
 {% hint style="info" %}
-Provision works by writing Apache or NGINX configuration dynamically. It can work with any Apache/NGINX based server. 
+Provision works by writing Apache or NGINX configuration and dynamically creating databases.
 
-Provision also includes Dockerfiles for these services. Either way, Provision writes the Apache/NGINX configuration from template files.
+This means that Provision works on standard systems where multiple services are running in a single operating system, like your laptop. 
+
+It also works on Docker systems where each service is provided by separate containers, using the same configuration templates.
 {% endhint %}
 
+### Provision Configuration
+
+It will help to read some background on how Provision manages configuration:
+
+1. The `provision` CLI has configuration we call the "console config".  This is configuration that just affects the behavior of the command line tool itself. It can be overwritten by creating a file in your $HOME folder, for example `/home/me/.provision.yml` or `/Users/me/.provision.yml` on a Mac.
+2. The Provision console configuration is mostly automatically generated from your system. There are two important settings that you might want to override by creating a `.provision.yml` file: `config`_`path and contexts`_`path`.
+3. The `config_path` setting is the parent folder for all others.
+   1. If you have a `$HOME/.config` folder \(most desktop OS's do, Mac & Linux included\), the default will be `$HOME/.config/provision`. 
+   2. If you don't have a `$HOME/.config` folder, the default will be `$HOME/config`.
+4. The `contexts_path` is where the YML files representing your sites and servers are saved. The default contexts path is contexts inside the \`config\_path folder.
+5. Each server context gets a folder created for it inside the `config_path`. All configuration for the server goes in this folder, such as Apache configuration.
+
+{% hint style="success" %}
+In Provision, sites and servers are called "contexts". You can think of them like Drupal nodes: they are just stored metadata about your server and sites, one file per site and server.
+{% endhint %}
+
+You can let Provision use the defaults, or you can create a `.provision.yml` file in your home folder to override these settings like so:
+
+```text
+# The default is in .config. This puts it in ~/.provision
+config_path: /Users/pat/.provision
+contexts_path: /Users/pat/.provision/contexts  
+```
+
+When you first run provision, it will check if these folders exist, and if they don't it will automatically run the `setup` command to walk you through creating them.
+
 {% hint style="danger" %}
-There is a bug currently where the first time run will throw an error about missing `config_path` folder, instead of the `setup` command.
+There is a bug currently where the first time run will throw an error about missing `config_path` folder. We are working on making it run the setup command automatically instead.
 
 Create the `contexts_path` at the default locations to continue:
 
 ```bash
-$ mkdir /Users/me/.config/provision/contexts -p
+$ mkdir $HOME/.config/provision/contexts -p
 ```
 {% endhint %}
 
