@@ -1,6 +1,6 @@
 # Introduction
 
-![](.gitbook/assets/server-verify.png)
+![](assets/server-verify.png)
 
 Provision is a command-line interface for quickly launching websites on any computer for development, testing, or production.
 
