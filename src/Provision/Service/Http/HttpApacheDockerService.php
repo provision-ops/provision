@@ -271,8 +271,8 @@ YML;
 # For available docker-compose env vars, see https://docs.docker.com/compose/reference/envvars/
 COMPOSE_PATH_SEPARATOR=:
 COMPOSE_FILE=$dc_files_path
-PROVISION_USER_UID' => $provision_user_uid,
-PROVISION_WEB_UID" => $provision_web_uid,
+PROVISION_USER_UID=$provision_user_uid
+PROVISION_WEB_UID=$provision_web_uid
 
 $env_custom
 ENV;
