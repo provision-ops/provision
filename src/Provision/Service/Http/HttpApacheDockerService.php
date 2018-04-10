@@ -260,6 +260,8 @@ YML;
               $dc_files_path = implode(':', $files);
 
               // Allow users to set a .env-custom file to allow additional ENV for the folder to be preserved.
+              $provision_user_uid = $this->getProvision()->getConfig()->get('script_uid');
+              $provision_web_uid = $this->getProvision()->getConfig()->get('web_user_uid');
               $env_file_path = $this->provider->getProperty('server_config_path') . '/.env';
               $env_custom_path = $this->provider->getProperty('server_config_path') . '/.env-custom';
               $env_custom = file_exists($env_custom_path)? '# LOADED FROM .env-custom: ' . PHP_EOL . file_get_contents($env_custom_path): '';
@@ -269,6 +271,9 @@ YML;
 # For available docker-compose env vars, see https://docs.docker.com/compose/reference/envvars/
 COMPOSE_PATH_SEPARATOR=:
 COMPOSE_FILE=$dc_files_path
+PROVISION_USER_UID' => $provision_user_uid,
+PROVISION_WEB_UID" => $provision_web_uid,
+
 $env_custom
 ENV;
             $this->provider->fs->dumpFile($env_file_path, $env_file_contents);
