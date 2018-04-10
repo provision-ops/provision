@@ -6,6 +6,9 @@ GRTAGS
 GSYMS
 GTAGS
 
+# Documentation
+docs
+
 # Development
 .idea
 
