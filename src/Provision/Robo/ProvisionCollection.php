@@ -31,7 +31,7 @@ class ProvisionCollection extends Collection {
      */
     private function runWithoutCompletion()
     {
-        $result = Result::success($this);
+        $result = Result::success($this, 'Provision Task', [], FALSE);
         
         if (empty($this->taskList)) {
             return $result;
@@ -170,7 +170,7 @@ class ProvisionCollection extends Collection {
         } catch (\Exception $e) {
             // Tasks typically should not throw, but if one does, we will
             // convert it into an error and roll back.
-            return Result::fromException($task, $e, $result->getData());
+            return Result::fromException($task, $e, $result->getData(), FALSE);
         }
         return $result;
     }
