@@ -349,7 +349,7 @@ ENV;
         $platform_tasks = $this->verifyPlatform();
 
         $tasks = [];
-        $tasks['http.site.configuration'] =  $this->getProvision()->newStep()
+        $tasks['http.site.configuration'] =  Provision::newStep()
             ->start('Writing site web server configuration...')
             ->execute(function () {
                 return $this->writeConfigurations($this->getContext())? 0: 1;

@@ -82,13 +82,13 @@ class HttpService extends Service implements ServiceInterface {
      */
     function verifyServer()
     {
-        $tasks['http.configuration'] = $this->getProvision()->newStep()
+        $tasks['http.configuration'] = Provision::newStep()
             ->start('Writing web server configuration...')
             ->execute(function() {
                 return $this->writeConfigurations()? 0: 1;
             })
         ;
-        $tasks['http.restart'] = $this->getProvision()->newStep()
+        $tasks['http.restart'] = Provision::newStep()
             ->start('Restarting web server...')
             ->execute(function() {
                 return $this->restartService()? 0: 1;
@@ -104,13 +104,13 @@ class HttpService extends Service implements ServiceInterface {
         $this->subscription = $this->getContext()->getSubscription('http');
 
         $tasks = [];
-        $tasks['http.site.configuration'] =  $this->getProvision()->newStep()
+        $tasks['http.site.configuration'] =  Provision::newStep()
             ->start('Writing site web server configuration...')
             ->execute(function () {
                 return $this->writeConfigurations($this->getContext())? 0: 1;
             })
         ;
-        $tasks['http.site.service'] =  $this->getProvision()->newStep()
+        $tasks['http.site.service'] =  Provision::newStep()
             ->start('Restarting web server...')
             ->execute(function () {
                 return $this->restartService()? 0: 1;
@@ -121,7 +121,7 @@ class HttpService extends Service implements ServiceInterface {
 
     function verifyPlatform() {
         $tasks = [];
-        $tasks['http.platform.configuration'] =  $this->getProvision()->newStep()
+        $tasks['http.platform.configuration'] =  Provision::newStep()
                 ->start('Writing platform web server configuration...')
                 ->execute(function () {
                     $this->writeConfigurations($this->getContext())? 0: 1;
