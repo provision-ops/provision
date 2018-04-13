@@ -82,19 +82,19 @@ class HttpService extends Service implements ServiceInterface {
      */
     function verifyServer()
     {
-        $tasks['http.configuration'] = Provision::newStep()
+        $steps['http.configuration'] = Provision::newStep()
             ->start('Writing web server configuration...')
             ->execute(function() {
                 return $this->writeConfigurations()? 0: 1;
             })
         ;
-        $tasks['http.restart'] = Provision::newStep()
+        $steps['http.restart'] = Provision::newStep()
             ->start('Restarting web server...')
             ->execute(function() {
                 return $this->restartService()? 0: 1;
             })
         ;
-        return $tasks;
+        return $steps;
     }
 
     /**
@@ -103,32 +103,32 @@ class HttpService extends Service implements ServiceInterface {
     function verifySite() {
         $this->subscription = $this->getContext()->getSubscription('http');
 
-        $tasks = [];
-        $tasks['http.site.configuration'] =  Provision::newStep()
+        $steps = [];
+        $steps['http.site.configuration'] =  Provision::newStep()
             ->start('Writing site web server configuration...')
             ->execute(function () {
                 return $this->writeConfigurations($this->getContext())? 0: 1;
             })
         ;
-        $tasks['http.site.service'] =  Provision::newStep()
+        $steps['http.site.service'] =  Provision::newStep()
             ->start('Restarting web server...')
             ->execute(function () {
                 return $this->restartService()? 0: 1;
             })
         ;
-        return $tasks;
+        return $steps;
     }
 
     function verifyPlatform() {
-        $tasks = [];
-        $tasks['http.platform.configuration'] =  Provision::newStep()
+        $steps = [];
+        $steps['http.platform.configuration'] =  Provision::newStep()
                 ->start('Writing platform web server configuration...')
                 ->execute(function () {
                     $this->writeConfigurations($this->getContext())? 0: 1;
                 })
         ;
-        $tasks = array_merge($tasks, $this->verifyServer());
-        return $tasks;
+        $steps = array_merge($steps, $this->verifyServer());
+        return $steps;
     }
 
     /**
