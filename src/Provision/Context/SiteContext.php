@@ -242,7 +242,6 @@ PHP;
                 }
             });
 
-
         // FROM verify.provision.inc  drush_provision_drupal_pre_provision_verify() line 118
 //        drush_set_option('packages', _scrub_object(provision_drupal_system_map()), 'site');
 //        // This is the actual drupal provisioning requirements.
