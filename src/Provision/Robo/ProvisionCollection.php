@@ -40,7 +40,7 @@ class ProvisionCollection extends Collection {
         if ($result->wasSuccessful()) {
             foreach ($this->taskList as $name => $taskGroup) {
                 
-                /** @var \Aegir\Provision\Task $task */
+                /** @var \Aegir\Provision\Step $task */
                 $task = $this->getConfig()->get($name);
 
                 // If task is not in "logging" group

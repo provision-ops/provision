@@ -125,7 +125,7 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
     public function verify()
     {
 
-        $tasks = parent::verify();
+        $steps = parent::verify();
 
         $this->getProvision()->io()->customLite($this->getProperty('uri'), 'Site URL: ', 'info');
         $this->getProvision()->io()->customLite($this->getProperty('root'), 'Root: ', 'info');
@@ -135,14 +135,14 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
         // If a composer.json file is found, run composer install.
         if (Provision::fs()->exists($this->getProperty('root') . '/composer.json') && $composer_command = $this->getProperty('composer_install_command')) {
             $dir = $this->getProperty('root');
-            $tasks['composer.install'] = $this->getProvision()->newTask()
+            $steps['composer.install'] = Provision::newStep()
                 ->start("Running <comment>$composer_command</comment> in <comment>$dir</comment> ...")
                 ->execute(function () use ($composer_command) {
                     return $this->shell_exec($composer_command, NULL, 'exit');
                 });
         }
 
-        $tasks['site.prepare'] = $this->getProvision()->newTask()
+        $steps['site.prepare'] = Provision::newStep()
             ->start('Preparing Drupal site configuration...')
 
             /**
@@ -242,7 +242,6 @@ PHP;
                 }
             });
 
-
         // FROM verify.provision.inc  drush_provision_drupal_pre_provision_verify() line 118
 //        drush_set_option('packages', _scrub_object(provision_drupal_system_map()), 'site');
 //        // This is the actual drupal provisioning requirements.
@@ -261,7 +260,7 @@ PHP;
 //
 //        provision_drupal_push_site(drush_get_option('override_slave_authority', FALSE));
 //
-        return $tasks;
+        return $steps;
     }
     
     /**

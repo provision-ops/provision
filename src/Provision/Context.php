@@ -614,26 +614,26 @@ class Context implements BuilderAwareInterface
         $pre_tasks += $this->verify();
         foreach ($pre_tasks as $pre_task_title => $pre_task) {
             $collection->getConfig()->set($pre_task_title, $pre_task);
-            $this->prepareTask($collection, $pre_task_title, $pre_task);
+            $this->addStepToCollection($collection, $pre_task_title, $pre_task);
         }
         foreach ($this->getServices() as $type => $service) {
             $friendlyName = $service->getFriendlyName();
-            $tasks = [];
+            $steps = [];
 //
 //            $collection->addCode(function() use ($friendlyName, $type) {
 //                $this->getProvision()->io()->section("Verify service: {$friendlyName}");
 //            }, 'logging.' . $type);
-            $tasks['logging.' . $type] = function() use ($friendlyName, $type) {
+            $steps['logging.' . $type] = function() use ($friendlyName, $type) {
                 $this->getProvision()->io()->section("Verify service: {$friendlyName}");
             };
 
             $service->setContext($this);
-            $tasks = array_merge($tasks, $service->verify());
+            $steps = array_merge($steps, $service->verify());
 
-            foreach ($tasks as $title => $task) {
-                $this->prepareTask($collection, $title, $task, $service);
+            foreach ($steps as $title => $task) {
+                $this->addStepToCollection($collection, $title, $task, $service);
             }
-            $tasks = [];
+            $steps = [];
         }
 
         $result = $collection->run();
@@ -647,29 +647,32 @@ class Context implements BuilderAwareInterface
     }
 
     /**
-     * Helper to pass tasks to the collection.
-     * @param $collection
-     * @param $title
-     * @param $task
+     * Helper to add a Step/task/callable/collection to the primary collection.
+     *
+     * Detects what type of thing it is, and either runs Collection->add(), $collection->addCode() or throws an exception.
+     *
+     * @param \Aegir\Provision\Robo\ProvisionCollection $collection
+     * @param string $title
+     * @param \Aegir\Provision\Step|callable|\Robo\Task\BaseTask|\Robo\Collection\CollectionBuilder $step
      * @param $service
+     *
      * @throws \Exception
      */
-    function prepareTask($collection, $title, $task, $service = NULL) {
-        if (is_callable($task)) {
-            $task = Provision::newTask()
-              ->execute($task);
+    function addStepToCollection($collection, $title, $step, $service = NULL) {
+        if (is_callable($step)) {
+            $step = Provision::newStep()
+                ->execute($step);
         }
 
-        $collection->getConfig()->set($title, $task);
+        $collection->getConfig()->set($title, $step);
 
-        if ($task instanceof \Robo\Task || $task instanceof \Robo\Collection\CollectionBuilder) {
-            $collection->getCollection()->add($task, $title);
-        }
-        elseif ($task instanceof Task) {
-            $collection->addCode($task->callable, $title);
+        if ($step instanceof \Robo\Task || $step instanceof \Robo\Collection\CollectionBuilder) {
+            $collection->getCollection()->add($step, $title);
+        } elseif ($step instanceof Step) {
+            $collection->addCode($step->callable, $title);
         }
         else {
-            $class = get_class($task);
+            $class = get_class($step);
             if ($service) {
                 $friendlyName = $service->getFriendlyName();
                 throw new \Exception("Task '$title' in service '$friendlyName' must be a callable or \\Robo\\Collection\\CollectionBuilder. Is class '$class'");
@@ -702,7 +705,7 @@ class Context implements BuilderAwareInterface
         $yml_file_path_machine_name = preg_replace('/[^a-zA-Z0-9\']/', '_', $yml_file_path);
 
         if (file_exists($yml_file_path)) {
-          $tasks['yml_hooks_found'] = Provision::newTask()
+          $tasks['yml_hooks_found'] = Provision::newStep()
             ->start("Custom hooks file found: <comment>{$yml_file_path}</comment>")
             ->failure("Custom hooks file found: <comment>{$yml_file_path}</comment>: Unable to parse YAML.")
             ->execute(function () use ($yml_file_path) {
@@ -711,7 +714,7 @@ class Context implements BuilderAwareInterface
               })
           ;
 
-          $tasks['yml_hooks_' . $yml_file_path_machine_name] = Provision::newTask()
+          $tasks['yml_hooks_' . $yml_file_path_machine_name] = Provision::newStep()
             ->start("Running <comment>hooks:verify:pre</comment> from {$yml_file_path}")
             ->success("Successfully ran <comment>hooks:verify:pre</comment> from {$yml_file_path}")
             ->failure("Errors while running <comment>hooks:verify:pre</comment> from {$yml_file_path}")

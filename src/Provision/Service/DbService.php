@@ -16,7 +16,7 @@ use Aegir\Provision\Provision;
 use Aegir\Provision\Service;
 use Aegir\Provision\ServiceInterface;
 use Aegir\Provision\ServiceSubscription;
-use Aegir\Provision\Task;
+use Aegir\Provision\Step;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -144,7 +144,7 @@ class DbService extends Service implements ServiceInterface
         $tasks = [];
         
         // Confirm we can connect to the database server as root.
-        $tasks['db_connect'] = $this->getProvision()->newTask()
+        $tasks['db_connect'] = Provision::newStep()
             ->execute(function () {
                 $this->connect();
             })
@@ -153,7 +153,7 @@ class DbService extends Service implements ServiceInterface
         ;
     
         // Confirm we have access to create databases.
-        $tasks['db_create'] = $this->getProvision()->newTask()
+        $tasks['db_create'] = Provision::newStep()
             ->execute(function () {
                 return $this->can_create_database()? 0: 1;
             })
@@ -161,7 +161,7 @@ class DbService extends Service implements ServiceInterface
         ;
     
         // Confirm we can create database users.
-        $tasks['db_grant'] = $this->getProvision()->newTask()
+        $tasks['db_grant'] = Provision::newStep()
             ->start('Checking access to grant privileges...')
             ->execute(function () {
                 return $this->can_grant_privileges()? 0: 1;
