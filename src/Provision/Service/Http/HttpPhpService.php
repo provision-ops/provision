@@ -40,7 +40,7 @@ class HttpPhpService extends HttpService
             'port' => $this->port,
         ]);
 
-        $tasks['http.php.launch'] = $this->getProvision()->newTask()
+        $tasks['http.php.launch'] = $this->getProvision()->newStep()
             ->success('Internal PHP Server has been verified.')
             ->failure('Something went wrong when launching the server.')
             ->execute(function () {

@@ -656,7 +656,7 @@ class Context implements BuilderAwareInterface
      */
     function prepareTask($collection, $title, $task, $service = NULL) {
         if (is_callable($task)) {
-            $task = Provision::newTask()
+            $task = Provision::newStep()
               ->execute($task);
         }
 
@@ -665,7 +665,7 @@ class Context implements BuilderAwareInterface
         if ($task instanceof \Robo\Task || $task instanceof \Robo\Collection\CollectionBuilder) {
             $collection->getCollection()->add($task, $title);
         }
-        elseif ($task instanceof Task) {
+        elseif ($task instanceof Step) {
             $collection->addCode($task->callable, $title);
         }
         else {
@@ -702,7 +702,7 @@ class Context implements BuilderAwareInterface
         $yml_file_path_machine_name = preg_replace('/[^a-zA-Z0-9\']/', '_', $yml_file_path);
 
         if (file_exists($yml_file_path)) {
-          $tasks['yml_hooks_found'] = Provision::newTask()
+          $tasks['yml_hooks_found'] = Provision::newStep()
             ->start("Custom hooks file found: <comment>{$yml_file_path}</comment>")
             ->failure("Custom hooks file found: <comment>{$yml_file_path}</comment>: Unable to parse YAML.")
             ->execute(function () use ($yml_file_path) {
@@ -711,7 +711,7 @@ class Context implements BuilderAwareInterface
               })
           ;
 
-          $tasks['yml_hooks_' . $yml_file_path_machine_name] = Provision::newTask()
+          $tasks['yml_hooks_' . $yml_file_path_machine_name] = Provision::newStep()
             ->start("Running <comment>hooks:verify:pre</comment> from {$yml_file_path}")
             ->success("Successfully ran <comment>hooks:verify:pre</comment> from {$yml_file_path}")
             ->failure("Errors while running <comment>hooks:verify:pre</comment> from {$yml_file_path}")

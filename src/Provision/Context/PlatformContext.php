@@ -241,11 +241,11 @@ class PlatformContext extends ServiceSubscriber implements ConfigurationInterfac
         if ($this->getProperty('git_url')) {
 
             if ($this->fs->exists($this->getProperty('root'))) {
-                $tasks['platform.files'] = $this->getProvision()->newTask()
+                $tasks['platform.files'] = $this->getProvision()->newStep()
                     ->success('Cloning git repository... Files already exist.');
             }
             else {
-                $tasks['platform.git'] = $this->getProvision()->newTask()
+                $tasks['platform.git'] = $this->getProvision()->newStep()
                     ->start('Cloning git repository...')
                     ->execute(function () {
                         if (!$this->fs->exists($this->getProperty('root'))) {
@@ -271,7 +271,7 @@ class PlatformContext extends ServiceSubscriber implements ConfigurationInterfac
         if ($this->getProperty('makefile')) {
 
             if ($this->fs->exists($this->getProperty('document_root_full'))) {
-                $tasks['platform.files'] = $this->getProvision()->newTask()
+                $tasks['platform.files'] = $this->getProvision()->newStep()
                     ->start('Building platform from makefile... Files already exist.');
             }
             else {
@@ -279,7 +279,7 @@ class PlatformContext extends ServiceSubscriber implements ConfigurationInterfac
                 if (!Provision::fs()->isAbsolutePath($makefile)) {
                     $makefile = $this->getProperty('root') . DIRECTORY_SEPARATOR . $makefile;
                 }
-                $tasks['platform.make'] = $this->getProvision()->newTask()
+                $tasks['platform.make'] = $this->getProvision()->newStep()
                     ->start('Building platform from makefile...')
                     ->execute(function () use ($makefile) {
                         $drush = realpath(__DIR__ . '/../../../bin/drush');
@@ -301,7 +301,7 @@ class PlatformContext extends ServiceSubscriber implements ConfigurationInterfac
         }
 
         // If files already exist, say so.
-        $tasks['platform.found'] = $this->getProvision()->newTask()
+        $tasks['platform.found'] = $this->getProvision()->newStep()
             ->start('Checking root path for files...')
             ->execute(function () {
                 return $this->fs->exists($this->getProperty('root'))? 0: 1;

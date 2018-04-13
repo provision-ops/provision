@@ -14,7 +14,7 @@ use Aegir\Provision\Provision;
 use Aegir\Provision\Service;
 use Aegir\Provision\ServiceInterface;
 use Aegir\Provision\ServiceSubscription;
-use Aegir\Provision\Task;
+use Aegir\Provision\Step;
 use Consolidation\AnnotatedCommand\CommandFileDiscovery;
 
 /**
@@ -82,13 +82,13 @@ class HttpService extends Service implements ServiceInterface {
      */
     function verifyServer()
     {
-        $tasks['http.configuration'] = $this->getProvision()->newTask()
+        $tasks['http.configuration'] = $this->getProvision()->newStep()
             ->start('Writing web server configuration...')
             ->execute(function() {
                 return $this->writeConfigurations()? 0: 1;
             })
         ;
-        $tasks['http.restart'] = $this->getProvision()->newTask()
+        $tasks['http.restart'] = $this->getProvision()->newStep()
             ->start('Restarting web server...')
             ->execute(function() {
                 return $this->restartService()? 0: 1;
@@ -104,13 +104,13 @@ class HttpService extends Service implements ServiceInterface {
         $this->subscription = $this->getContext()->getSubscription('http');
 
         $tasks = [];
-        $tasks['http.site.configuration'] =  $this->getProvision()->newTask()
+        $tasks['http.site.configuration'] =  $this->getProvision()->newStep()
             ->start('Writing site web server configuration...')
             ->execute(function () {
                 return $this->writeConfigurations($this->getContext())? 0: 1;
             })
         ;
-        $tasks['http.site.service'] =  $this->getProvision()->newTask()
+        $tasks['http.site.service'] =  $this->getProvision()->newStep()
             ->start('Restarting web server...')
             ->execute(function () {
                 return $this->restartService()? 0: 1;
@@ -121,7 +121,7 @@ class HttpService extends Service implements ServiceInterface {
 
     function verifyPlatform() {
         $tasks = [];
-        $tasks['http.platform.configuration'] =  $this->getProvision()->newTask()
+        $tasks['http.platform.configuration'] =  $this->getProvision()->newStep()
                 ->start('Writing platform web server configuration...')
                 ->execute(function () {
                     $this->writeConfigurations($this->getContext())? 0: 1;

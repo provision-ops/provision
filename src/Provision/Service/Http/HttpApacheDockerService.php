@@ -178,14 +178,14 @@ class HttpApacheDockerService extends HttpApacheService implements DockerService
       $filename = $this->provider->getProperty('server_config_path') . DIRECTORY_SEPARATOR . 'docker-compose-provision.yml';
 
       // Write Apache configuration files.
-      $tasks['http.server.configuration'] = Provision::newTask()
+      $tasks['http.server.configuration'] = Provision::newStep()
               ->start('Writing web server configuration...')
               ->execute(function() {
                   return $this->writeConfigurations()? 0: 1;
               });
 
       // Write docker-compose.yml file.
-      $tasks['docker.compose.write'] = Provision::newTask()
+      $tasks['docker.compose.write'] = Provision::newStep()
           ->start('Generating docker-compose.yml file...')
           ->success('Generating docker-compose.yml file... Saved to ' . $filename)
           ->failure('Generating docker-compose.yml file... Saved to ' . $filename)
@@ -283,14 +283,14 @@ ENV;
 
       $command = $this->dockerComposeCommand('up', self::DOCKER_COMPOSE_UP_OPTIONS);
 
-      $tasks['docker.compose.up'] = Provision::newTask()
+      $tasks['docker.compose.up'] = Provision::newStep()
           ->start("Running <info>{$command}</info> in <info>{$this->provider->server_config_path}</info> ...")
           ->execute(function() use ($command) {
               return $this->provider->shell_exec($command, NULL, 'exit');
           })
       ;
       // Run docker-compose up -d --build
-      $tasks['docker.http.restart'] = Provision::newTask()
+      $tasks['docker.http.restart'] = Provision::newStep()
           ->start('Restarting web service...')
           ->execute(function() {
               return $this->restartService()? 0: 1;
@@ -349,7 +349,7 @@ ENV;
         $platform_tasks = $this->verifyPlatform();
 
         $tasks = [];
-        $tasks['http.site.configuration'] =  $this->getProvision()->newTask()
+        $tasks['http.site.configuration'] =  $this->getProvision()->newStep()
             ->start('Writing site web server configuration...')
             ->execute(function () {
                 return $this->writeConfigurations($this->getContext())? 0: 1;
