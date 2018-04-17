@@ -236,7 +236,20 @@ class DbMysqlDockerService extends DbMysqlService implements DockerServiceInterf
         return parent::verifyServer();
     }
 
+    /**
+     * Override the existing server because we can't check connectivity until
+     * ServerContextDockerCompose::postVerify() runs.
+     */
+    public function verifySite() {
+        return [];
+    }
 
+    /**
+     * @return array
+     */
+    public function postVerifySite() {
+        return parent::verifySite();
+    }
 
     //
 //    use DockerContainerTrait;
