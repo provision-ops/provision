@@ -930,24 +930,13 @@ class Context implements BuilderAwareInterface
       $this->getProvision()->io()->commandBlock($command, $effective_wd);
     }
 
-    // Output and Errors to files.
-    $command .= "> $tmp_output_file 2> $tmp_error_file";
-
-    chdir($effective_wd);
-    exec($command, $output, $exit);
-    chdir($cwd);
-
-    $stderr = file_get_contents($tmp_error_file);
+    // Output and Errors to file.
+    $command .= "| tee $tmp_output_file";
+    $exit = $this->process_exec($command, $effective_wd);
     $stdout = file_get_contents($tmp_output_file);
 
-    if (!empty($stdout)){
-      if ($this->getProvision()->getOutput()->isVerbose()) {
-        $this->getProvision()->io()->outputBlock($stdout);
-      }
-    }
-
     if ($exit != ResultData::EXITCODE_OK) {
-      throw new \Exception($stderr);
+      throw new \Exception($stdout);
     }
 
     return ${$return};
@@ -961,7 +950,9 @@ class Context implements BuilderAwareInterface
   public function process_exec($command, $dir = NULL) {
 
     $process = new Process($command);
-    $env = getenv();
+    $process->setTimeout(null);
+
+    $env = $_SERVER;
 
     $env['PROVISION_CONTEXT'] = $this->name;
     $env['PROVISION_CONTEXT_CONFIG_FILE'] = $this->config_path;
@@ -977,7 +968,9 @@ class Context implements BuilderAwareInterface
     }
     $io = $this->getProvision()->io();
     $process->run(function ($type, $buffer) use ($io) {
-        $io->outputBlock(trim($buffer));
+        if ($this->getProvision()->getOutput()->isVerbose()) {
+            $io->writeln(trim($buffer));
+        }
     });
     return $process->getExitCode();
   }
