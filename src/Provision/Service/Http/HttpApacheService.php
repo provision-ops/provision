@@ -70,6 +70,8 @@ class HttpApacheService extends HttpService
                 return $test;
             }
         }
+
+        throw new \Exception('No apache executable was found. Are you sure it is installed? I looked for: ' . implode(', ', $options));
     }
 
     /**
@@ -167,7 +169,7 @@ $full_error
 ");
                     }
                     else {
-                        throw new \Exception('EXCEPTION!!!' . $e->getMessage(), NULL, $e);
+                        throw new \Exception($e->getMessage(), NULL, $e);
                     }
                 }
 

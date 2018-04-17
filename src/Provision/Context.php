@@ -618,6 +618,8 @@ class Context implements BuilderAwareInterface
      * Collect all services for the context and run the verify() method on them.
      *
      * If this context is a Service Subscriber, the provider service will be verified first.
+     *
+     * @throws \Exception
      */
     public function verifyCommand()
     {
@@ -651,11 +653,11 @@ class Context implements BuilderAwareInterface
         // Add postVerify() tasks to the collection.
         $postTasks = $this->postVerify();
         if (count($postTasks)) {
-            $this->prepareTask($collection, 'logging.post', function() use ($friendlyName, $type) {
+            $this->addStepToCollection($collection, 'logging.post', function() use ($friendlyName, $type) {
                 $this->getProvision()->io()->section("Verify server: Finalize");
             });
 
-            $this->prepareTasks($collection, $this->postVerify());
+            $this->prepareSteps($collection, $this->postVerify());
         }
         $result = $collection->run();
 
@@ -669,15 +671,16 @@ class Context implements BuilderAwareInterface
 
     /**
      * Maps array of tasks into a collection.
+     *
      * @param $collection
-     * @param $tasks
+     * @param $steps
      *
      * @throws \Exception
      */
-    protected function prepareTasks(ProvisionCollectionBuilder $collection, $tasks) {
-        foreach ($tasks as $task_title => $task) {
-            $collection->getConfig()->set($task_title, $task);
-            $this->prepareTask($collection, $task_title, $task);
+    protected function prepareSteps(CollectionBuilder $collection, $steps) {
+        foreach ($steps as $title => $step) {
+            $collection->getConfig()->set($title, $step);
+            $this->addStepToCollection($collection, $title, $step);
         }
     }
 
@@ -686,7 +689,7 @@ class Context implements BuilderAwareInterface
      *
      * Detects what type of thing it is, and either runs Collection->add(), $collection->addCode() or throws an exception.
      *
-     * @param \Aegir\Provision\Robo\ProvisionCollection $collection
+     * @param \Aegir\Provision\Robo\ProvisionCollection|\Robo\Collection\CollectionBuilder $collection
      * @param string $title
      * @param \Aegir\Provision\Step|callable|\Robo\Task\BaseTask|\Robo\Collection\CollectionBuilder $step
      * @param $service
