@@ -141,6 +141,12 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
             $steps += $this->dockerCompose->preVerify();
         }
 
+        foreach ($this->servicesInvoke('preVerifyServer') as $serviceSteps) {
+            if (is_array($serviceSteps)) {
+                $steps += $serviceSteps;
+            }
+        }
+
         return $steps;
     }
 
@@ -153,9 +159,14 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
 
         // If dockerCompose engine is available, add those steps.
         if ($this->dockerCompose) {
-            $steps += $this->dockerCompose->postVerify();
+            $steps = $this->dockerCompose->postVerify();
         }
 
+        foreach ($this->servicesInvoke('postVerifyServer') as $serviceSteps) {
+            if (is_array($serviceSteps)) {
+                $steps += $serviceSteps;
+            }
+        }
         return $steps;
     }
 }

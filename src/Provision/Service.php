@@ -133,6 +133,22 @@ class Service implements BuilderAwareInterface
 //    }
 
     /**
+     * React to `provision verify` command when run on a server, before all other services have run.
+     */
+    function preVerifyServer()
+    {
+        return [];
+    }
+
+    /**
+     * React to `provision verify` command when run on a server, after all other services have run.
+     */
+    function postVerifyServer()
+    {
+        return [];
+    }
+
+    /**
      * Run the services "restart_command".
      * @return bool
      */
