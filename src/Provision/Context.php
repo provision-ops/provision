@@ -8,9 +8,11 @@ namespace Aegir\Provision;
 
 use Aegir\Provision\Common\ProvisionAwareTrait;
 use Aegir\Provision\Console\Config;
+use Aegir\Provision\Context\ServerContextDockerCompose;
 use Aegir\Provision\Robo\ProvisionCollection;
 use Aegir\Provision\Robo\ProvisionCollectionBuilder;
 use Aegir\Provision\Console\ProvisionStyle;
+use Aegir\Provision\Service\DockerServiceInterface;
 use Consolidation\AnnotatedCommand\CommandFileDiscovery;
 use Drupal\Console\Core\Style\DrupalStyle;
 use Robo\Collection\CollectionBuilder;
@@ -89,6 +91,14 @@ class Context implements BuilderAwareInterface
     public $fs;
 
     /**
+     * If server has any services that implement DockerServiceInterface,
+     * $this->dockerCompose will be loaded.
+     *
+     * @var \Aegir\Provision\Context\ServerContextDockerCompose|null
+     */
+    public $dockerCompose = NULL;
+
+    /**
      * Context constructor.
      *
      * @param $name
@@ -108,6 +118,15 @@ class Context implements BuilderAwareInterface
         $this->prepareServices();
 
         $this->fs = new Filesystem();
+
+        // If any assigned services implement DockerServiceInterface, load our
+        // ServerContextDockerCompose class.
+        foreach ($this->services as $service) {
+            if ($service instanceof DockerServiceInterface) {
+                $this->dockerCompose = new ServerContextDockerCompose($service->provider);
+                break;
+            }
+        }
     }
 
     /**
@@ -731,9 +750,21 @@ class Context implements BuilderAwareInterface
      * any other verify takes place.
      */
     function preVerify() {
-      $tasks = [];
 
-      // Lookup possible hook files.
+        $steps = [];
+
+        // If dockerCompose engine is available, add those steps.
+        if ($this->dockerCompose) {
+            $steps += $this->dockerCompose->preVerify();
+        }
+
+        foreach ($this->servicesInvoke('preVerify' . ucfirst($this->type)) as $serviceSteps) {
+            if (is_array($serviceSteps)) {
+                $steps += $serviceSteps;
+            }
+        }
+
+        // Lookup possible hook files.
       // @TODO: create methods on the contexts to do this.
       if ($this->type == 'server') {
         $lookup_paths[] = $this->server_config_path;
@@ -747,7 +778,7 @@ class Context implements BuilderAwareInterface
         $yml_file_path_machine_name = preg_replace('/[^a-zA-Z0-9\']/', '_', $yml_file_path);
 
         if (file_exists($yml_file_path)) {
-          $tasks['yml_hooks_found'] = Provision::newStep()
+          $steps['yml_hooks_found'] = Provision::newStep()
             ->start("Custom hooks file found: <comment>{$yml_file_path}</comment>")
             ->failure("Custom hooks file found: <comment>{$yml_file_path}</comment>: Unable to parse YAML.")
             ->execute(function () use ($yml_file_path) {
@@ -756,7 +787,7 @@ class Context implements BuilderAwareInterface
               })
           ;
 
-          $tasks['yml_hooks_' . $yml_file_path_machine_name] = Provision::newStep()
+          $steps['yml_hooks_' . $yml_file_path_machine_name] = Provision::newStep()
             ->start("Running <comment>hooks:verify:pre</comment> from {$yml_file_path}")
             ->success("Successfully ran <comment>hooks:verify:pre</comment> from {$yml_file_path}")
             ->failure("Errors while running <comment>hooks:verify:pre</comment> from {$yml_file_path}")
@@ -775,7 +806,7 @@ class Context implements BuilderAwareInterface
           ;
         }
       }
-       return $tasks;
+       return $steps;
     }
 
     /**
@@ -793,7 +824,19 @@ class Context implements BuilderAwareInterface
      * Run extra tasks before services take over.
      */
     function postVerify() {
-       return [];
+        $steps = [];
+
+        // If dockerCompose engine is available, add those steps.
+        if ($this->dockerCompose) {
+            $steps = $this->dockerCompose->postVerify();
+        }
+
+        foreach ($this->servicesInvoke('postVerify' . ucfirst($this->type)) as $serviceSteps) {
+            if (is_array($serviceSteps)) {
+                $steps += $serviceSteps;
+            }
+        }
+        return $steps;
     }
 
 //

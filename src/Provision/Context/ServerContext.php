@@ -6,7 +6,6 @@ use Aegir\Provision\Console\Config;
 use Aegir\Provision\ServiceProvider;
 use Aegir\Provision\Property;
 use Aegir\Provision\Provision;
-use Aegir\Provision\Service\DockerServiceInterface;
 use Psr\Log\LogLevel;
 use Robo\ResultData;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -28,14 +27,6 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
      */
     public $type = 'server';
     const TYPE = 'server';
-
-    /**
-     * If server has any services that implement DockerServiceInterface,
-     * $this->dockerCompose will be loaded.
-     *
-     * @var \Aegir\Provision\Context\ServerContextDockerCompose|null
-     */
-    public $dockerCompose = NULL;
 
     /**
      * @var string
@@ -65,15 +56,6 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
         }
         else {
             $this->server_config_path = $this->getProperty('server_config_path');
-        }
-
-        // If any assigned services implement DockerServiceInterface, load our
-        // ServerContextDockerCompose class.
-        foreach ($this->services as $service) {
-            if ($service instanceof DockerServiceInterface) {
-                $this->dockerCompose = new ServerContextDockerCompose($this);
-                break;
-            }
         }
     }
 
@@ -124,49 +106,5 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
                     ->hidden()
             ,
         ];
-    }
-
-    /**
-     * @return array
-     */
-    public function preVerify()
-    {
-        // Create the server/service directory. We put this here because we need to make sure this is always run before any other steps, no matter what.
-        Provision::fs()->mkdir($this->server_config_path);
-
-        $steps = [];
-
-        // If dockerCompose engine is available, add those steps.
-        if ($this->dockerCompose) {
-            $steps += $this->dockerCompose->preVerify();
-        }
-
-        foreach ($this->servicesInvoke('preVerifyServer') as $serviceSteps) {
-            if (is_array($serviceSteps)) {
-                $steps += $serviceSteps;
-            }
-        }
-
-        return $steps;
-    }
-
-    /**
-     * @return array
-     */
-    public function postVerify()
-    {
-        $steps = [];
-
-        // If dockerCompose engine is available, add those steps.
-        if ($this->dockerCompose) {
-            $steps = $this->dockerCompose->postVerify();
-        }
-
-        foreach ($this->servicesInvoke('postVerifyServer') as $serviceSteps) {
-            if (is_array($serviceSteps)) {
-                $steps += $serviceSteps;
-            }
-        }
-        return $steps;
     }
 }
