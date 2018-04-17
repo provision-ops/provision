@@ -6,7 +6,7 @@
     "type": "project",
     "license": "GPL-2.0+",
     "require": {
-        "consolidation/Robo": "^1.1",
+        "consolidation/Robo": "dev-block-output",
         "consolidation/annotated-command": "~2",
         "drupal/console-core": "1.0.2",
         "drush/drush": "8.x",
@@ -15,6 +15,12 @@
         "symfony/console": "^3.2",
         "symfony/yaml": "^3.2"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:provision4/Robo.git"
+        }
+    ],
     "bin": ["bin/provision"],
     "authors": [
         {
