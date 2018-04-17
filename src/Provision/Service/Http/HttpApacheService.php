@@ -8,6 +8,7 @@
 
 namespace Aegir\Provision\Service\Http;
 
+use Aegir\Provision\Provision;
 use Aegir\Provision\Service\Http\Apache\Configuration\PlatformConfigFile;
 use Aegir\Provision\Service\Http\Apache\Configuration\ServerConfigFile;
 use Aegir\Provision\Service\Http\Apache\Configuration\SiteConfigFile;
