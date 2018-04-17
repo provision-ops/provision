@@ -107,7 +107,10 @@ class DbMysqlDockerService extends DbMysqlService implements DockerServiceInterf
         $timeout = $this->getProvision()->getConfig()->get('database_wait_timeout', 30);
         while (true) {
             try {
-                $this->provider->shell_exec($command);
+                $output = $this->provider->shell_exec($command, NULL, 'stdout');
+                if (strpos($output, "Access denied for user") !== FALSE) {
+                    throw new \Exception($output);
+                }
                 break;
             } catch (\Exception $e) {
                 // If docker client can't connect, bail and pass the error through to the exeception.
@@ -118,6 +121,11 @@ class DbMysqlDockerService extends DbMysqlService implements DockerServiceInterf
                 // If we hit our timeout while waiting for container, bail out.
                 if (time() - $start > $timeout) {
                     throw new \Exception('Timed out waiting for database Docker container.');
+                }
+
+                // If root user cannot connect for some reason, bail out.
+                if (strpos($e->getMessage(), "Access denied for user") !== FALSE) {
+                    throw new \Exception($e->getMessage());
                 }
 
                 // Otherwise, print a waiting dot and try again.
