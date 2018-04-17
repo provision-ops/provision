@@ -978,7 +978,8 @@ class Context implements BuilderAwareInterface
       $this->getProvision()->io()->customLite("Writing output to <comment>$tmp_output_file</comment>", ProvisionStyle::ICON_FILE, 'comment');
 
         // If verbose, Use tee so we see it and it saves to file.
-        $command .= "2>&1 | tee $tmp_output_file";
+        // Thanks to https://askubuntu.com/a/731237
+        $command .= "|& tee -a $tmp_output_file";
     }
     else {
         // If not verbose, just save it to file.
