@@ -928,6 +928,7 @@ class Context implements BuilderAwareInterface
 
     if ($this->getProvision()->getOutput()->isVerbose()) {
       $this->getProvision()->io()->commandBlock($command, $effective_wd);
+      $this->getProvision()->io()->customLite("Writing output to <comment>$tmp_output_file</comment>", ProvisionStyle::ICON_FILE, 'comment');
     }
 
     // Output and Errors to file.
