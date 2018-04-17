@@ -215,9 +215,9 @@ class HttpApacheDockerService extends HttpApacheService implements DockerService
         $tasks['http.platform.configuration'] = $platform_tasks['http.platform.configuration'];
         $tasks['http.server.configuration'] = $server_tasks['http.server.configuration'];
 
-        $tasks['docker.compose.write'] = $server_tasks['docker.compose.write'];
-        $tasks['docker.compose.up'] = $server_tasks['docker.compose.up'];
-        $tasks['docker.http.restart'] = $server_tasks['docker.http.restart'];
+//        $tasks['docker.compose.write'] = $server_tasks['docker.compose.write'];
+//        $tasks['docker.compose.up'] = $server_tasks['docker.compose.up'];
+//        $tasks['docker.http.restart'] = $server_tasks['docker.http.restart'];
 
         return $tasks;
     }
