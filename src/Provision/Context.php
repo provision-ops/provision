@@ -933,10 +933,16 @@ class Context implements BuilderAwareInterface
     if ($this->getProvision()->getOutput()->isVerbose()) {
       $this->getProvision()->io()->commandBlock($command, $effective_wd);
       $this->getProvision()->io()->customLite("Writing output to <comment>$tmp_output_file</comment>", ProvisionStyle::ICON_FILE, 'comment');
+
+        // If verbose, Use tee so we see it and it saves to file.
+        $command .= "2>&1 | tee $tmp_output_file";
+    }
+    else {
+        // If not verbose, just save it to file.
+        $command .= "> $tmp_output_file 2>&1";
     }
 
     // Output and Errors to file.
-    $command .= "| tee $tmp_output_file";
     $exit = $this->process_exec($command, $effective_wd);
     $stdout = file_get_contents($tmp_output_file);
 
@@ -972,9 +978,12 @@ class Context implements BuilderAwareInterface
     if ($dir){
       $process->setWorkingDirectory($dir);
     }
+
+//    print $this->getProvision()->getOutput()->isVerbose(); die; // 'verbose!@!!': 'not verbose';
     $io = $this->getProvision()->io();
-    $process->run(function ($type, $buffer) use ($io) {
-        if ($this->getProvision()->getOutput()->isVerbose()) {
+    $verbose = (bool) $this->getProvision()->getOutput()->isVerbose();
+    $process->run(function ($type, $buffer) use ($verbose, $io) {
+        if ($verbose) {
             $io->writeln(trim($buffer));
         }
     });
