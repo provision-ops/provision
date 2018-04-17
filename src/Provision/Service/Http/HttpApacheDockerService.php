@@ -186,7 +186,7 @@ class HttpApacheDockerService extends HttpApacheService implements DockerService
   public function postVerify() {
 
     // Run docker-compose up -d --build
-    $tasks['docker.http.restart'] = Provision::newTask()
+    $tasks['docker.http.restart'] = Provision::newStep()
       ->start('Restarting web service...')
       ->execute(function() {
         return $this->restartService()? 0: 1;

@@ -21,7 +21,7 @@ class ServerContextDockerCompose extends ServerContext {
         $filename = $this->getProperty('server_config_path') . DIRECTORY_SEPARATOR . 'docker-compose.yml';
 
       // Write docker-compose.yml file.
-      $tasks['docker.compose.write'] = Provision::newTask()
+      $tasks['docker.compose.write'] = Provision::newStep()
         ->start('Generating docker-compose.yml file...')
         ->success('Generating docker-compose.yml file... Saved to ' . $filename)
         ->failure('Generating docker-compose.yml file... Saved to ' . $filename)
@@ -122,7 +122,7 @@ ENV;
 
         // Run docker-compose up -d --build
         $command = self::DOCKER_COMPOSE_UP_COMMAND;
-        $tasks['docker.compose.up'] = Provision::newTask()
+        $tasks['docker.compose.up'] = Provision::newStep()
             ->start("Running <info>{$command}</info> in <info>{$this->server_config_path}</info> ...")
             ->execute(function() {
                 return $this->shell_exec(self::DOCKER_COMPOSE_UP_COMMAND, NULL, 'exit');
