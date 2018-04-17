@@ -21,7 +21,6 @@ class ServerContextDockerCompose  {
     public $server;
 
     const DOCKER_COMPOSE_COMMAND = 'docker-compose';
-    const DOCKER_COMPOSE_UP_COMMAND = 'docker-compose up';
     const DOCKER_COMPOSE_UP_OPTIONS = ' -d --build --force-recreate ';
 
     /**
@@ -137,12 +136,12 @@ ENV;
      */
     public function postVerify() {
 
-        // Run docker-compose up -d --build
-        $command = self::DOCKER_COMPOSE_UP_COMMAND;
+        // Run docker-compose up with options
+        $command = $this->dockerComposeCommand('up', $this::DOCKER_COMPOSE_UP_OPTIONS);
         $tasks['docker.compose.up'] = Provision::newStep()
             ->start("Running <info>{$command}</info> in <info>{$this->server->server_config_path}</info> ...")
-            ->execute(function() {
-                return $this->server->shell_exec(self::DOCKER_COMPOSE_UP_COMMAND, NULL, 'exit');
+            ->execute(function() use ($command) {
+                return $this->server->shell_exec($command, NULL, 'exit');
             })
         ;
 
@@ -180,7 +179,7 @@ ENV;
     function dockerComposeCommand($command = '', $options = '', $load_files = FALSE) {
 
         // Generate the docker-compose command.
-        $docker_compose = self::DOCKER_COMPOSE_UP_COMMAND;
+        $docker_compose = self::DOCKER_COMPOSE_COMMAND;
 
         // If told to load files, do it.
         if ($load_files) {
