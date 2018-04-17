@@ -638,12 +638,16 @@ class Context implements BuilderAwareInterface
 //            $collection->addCode(function() use ($friendlyName, $type) {
 //                $this->getProvision()->io()->section("Verify service: {$friendlyName}");
 //            }, 'logging.' . $type);
-            $steps['logging.' . $type] = function() use ($friendlyName, $type) {
-                $this->getProvision()->io()->section("Verify service: {$friendlyName}");
-            };
 
             $service->setContext($this);
-            $steps = array_merge($steps, $service->verify());
+            $service_steps = $service->verify();
+            if (count($service_steps)) {
+                $steps['logging.' . $type] = function() use ($friendlyName, $type) {
+                    $this->getProvision()->io()->section("Verify service: {$friendlyName}");
+                };
+            }
+
+            $steps = array_merge($steps, $service_steps);
 
             foreach ($steps as $title => $task) {
                 $this->addStepToCollection($collection, $title, $task, $service);
@@ -952,6 +956,7 @@ class Context implements BuilderAwareInterface
 
     $process = new Process($command);
     $process->setTimeout(null);
+    $process->setTty(true);
 
     $env = $_SERVER;
 
