@@ -125,15 +125,24 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
     public function verify()
     {
 
-        $tasks = parent::verify();
+        $steps = parent::verify();
 
         $this->getProvision()->io()->customLite($this->getProperty('uri'), 'Site URL: ', 'info');
         $this->getProvision()->io()->customLite($this->getProperty('root'), 'Root: ', 'info');
         $this->getProvision()->io()->customLite($this->config_path, 'Configuration File: ', 'info');
         $this->getProvision()->io()->newLine();
 
-    
-        $tasks['site.prepare'] = $this->getProvision()->newTask()
+        // If a composer.json file is found, run composer install.
+        if (Provision::fs()->exists($this->getProperty('root') . '/composer.json') && $composer_command = $this->getProperty('composer_install_command')) {
+            $dir = $this->getProperty('root');
+            $steps['composer.install'] = Provision::newStep()
+                ->start("Running <comment>$composer_command</comment> in <comment>$dir</comment> ...")
+                ->execute(function () use ($composer_command) {
+                    return $this->shell_exec($composer_command, NULL, 'exit');
+                });
+        }
+
+        $steps['site.prepare'] = Provision::newStep()
             ->start('Preparing Drupal site configuration...')
 
             /**
@@ -199,8 +208,13 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
                     $this->fs->chmod("$site_path/settings.php", 02770);
                     $this->fs->chgrp("$site_path/settings.php", $this->getProvision()->getConfig()->get('web_user'));
 
-                    // @TODO: This is only true for Drupal version 7.50 and up. See Provision/Config/Drupal/Settings.php
-                    // We are treading more and more into the Drupal-only world, so I'm leaving this hard coded to TRUE until we develop something else.
+
+                    if (strpos(file_get_contents("$site_path/settings.php"), "// PROVISION SETTINGS") === FALSE) {
+
+                      $hash_salt = self::randomBytesBase64(55);
+
+                        // @TODO: This is only true for Drupal version 7.50 and up. See Provision/Config/Drupal/Settings.php
+                            // We are treading more and more into the Drupal-only world, so I'm leaving this hard coded to TRUE until we develop something else.
                     $database_settings = <<<PHP
                         
 // PROVISION SETTINGS
@@ -221,12 +235,12 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
 
 \$db_url['default'] = \$_SERVER['db_type'] . '://' . \$_SERVER['db_user'] . ':' . \$_SERVER['db_passwd'] . '@' . \$_SERVER['db_host'] . ':' . \$_SERVER['db_port'] . '/' . \$_SERVER['db_name'];
 
+\$settings['hash_salt'] = '$hash_salt';
+
 PHP;
-                if (strpos(file_get_contents("$site_path/settings.php"), "// PROVISION SETTINGS") === FALSE) {
                     $this->fs->appendToFile("$site_path/settings.php", $database_settings);
                 }
             });
-
 
         // FROM verify.provision.inc  drush_provision_drupal_pre_provision_verify() line 118
 //        drush_set_option('packages', _scrub_object(provision_drupal_system_map()), 'site');
@@ -246,7 +260,7 @@ PHP;
 //
 //        provision_drupal_push_site(drush_get_option('override_slave_authority', FALSE));
 //
-        return $tasks;
+        return $steps;
     }
     
     /**
@@ -259,5 +273,46 @@ PHP;
             "sites/$uri",
             "sites/$uri/files",
         ];
+    }
+
+
+    /**
+     * Replacement for Drupal\Component\Utility\Crypt::randomBytes(),
+     * used for generating settings.php hash_salt.
+     *
+     * @param $count
+     * @return bool|string
+     */
+    public static function randomBytes($count) {
+        $random_state = print_r($_SERVER, TRUE);
+        if (function_exists('getmypid')) {
+            // Further initialize with the somewhat random PHP process ID.
+            $random_state .= getmypid();
+        }
+        $bytes = '';
+// Ensure mt_rand() is reseeded before calling it the first time.
+        mt_srand();
+        do {
+            $random_state = hash('sha256', microtime() . mt_rand() . $random_state);
+            $bytes .= hash('sha256', mt_rand() . $random_state, TRUE);
+        } while (strlen($bytes) < $count);
+        $output = substr($bytes, 0, $count);
+        $bytes = substr($bytes, $count);
+        return $output;
+    }
+
+    /**
+     * Returns a URL-safe, base64 encoded string of highly randomized bytes.
+     *
+     * @param $count
+     *   The number of random bytes to fetch and base64 encode.
+     *
+     * @return string
+     *   The base64 encoded result will have a length of up to 4 * $count.
+     *
+     * @see \Drupal\Component\Utility\Crypt::randomBytes()
+     */
+    public static function randomBytesBase64($count = 32) {
+        return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode(static::randomBytes($count)));
     }
 }

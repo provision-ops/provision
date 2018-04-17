@@ -8,6 +8,7 @@
 
 namespace Aegir\Provision\Service\Http;
 
+use Aegir\Provision\Provision;
 use Aegir\Provision\Service\Http\Apache\Configuration\PlatformConfigFile;
 use Aegir\Provision\Service\Http\Apache\Configuration\ServerConfigFile;
 use Aegir\Provision\Service\Http\Apache\Configuration\SiteConfigFile;
@@ -66,7 +67,7 @@ class HttpApacheService extends HttpService
 
         foreach ($options as $test) {
             if (is_executable($test)) {
-                return $command;
+                return $test;
             }
         }
     }
@@ -124,13 +125,13 @@ class HttpApacheService extends HttpService
      */
     function verifyServer()
     {
-        $tasks['http.configuration'] = $this->getProvision()->newTask()
+        $tasks['http.configuration'] = Provision::newStep()
             ->start('Writing web server configuration...')
             ->execute(function() {
                 return $this->writeConfigurations()? 0: 1;
             })
         ;
-        $tasks['http.check'] = $this->getProvision()->newTask()
+        $tasks['http.check'] = Provision::newStep()
             ->start('Checking web server configuration...')
 ->execute(function() {
                 $provision_apache_config_path = $this->provider->server_config_path . DIRECTORY_SEPARATOR . $this->getType() . '.conf';
@@ -184,7 +185,7 @@ $full_error
 
     });
 
-        $tasks['http.restart'] = $this->getProvision()->newTask()
+        $tasks['http.restart'] = Provision::newStep()
             ->start('Restarting web server...')
             ->execute(function() {
                 return $this->restartService()? 0: 1;

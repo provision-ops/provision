@@ -89,6 +89,11 @@ class HttpApacheDockerService extends HttpApacheService implements DockerService
                 ->defaultValue(80)
                 ->required()
             ,
+            'web_group' => Provision::newProperty()
+                ->description('Web server group.')
+                ->defaultValue(Provision::defaultWebGroup())
+                ->required()
+            ,
         ];
     }
 
@@ -166,7 +171,7 @@ class HttpApacheDockerService extends HttpApacheService implements DockerService
      */
   public function verifyServer() {
       // Write Apache configuration files.
-      $tasks['http.server.configuration'] = Provision::newTask()
+      $tasks['http.server.configuration'] = Provision::newStep()
           ->start('Writing web server configuration...')
           ->execute(function() {
               return $this->writeConfigurations()? 0: 1;
@@ -241,7 +246,7 @@ class HttpApacheDockerService extends HttpApacheService implements DockerService
         $platform_tasks = $this->verifyPlatform();
 
         $tasks = [];
-        $tasks['http.site.configuration'] =  $this->getProvision()->newTask()
+        $tasks['http.site.configuration'] =  Provision::newStep()
             ->start('Writing site web server configuration...')
             ->execute(function () {
                 return $this->writeConfigurations($this->getContext())? 0: 1;

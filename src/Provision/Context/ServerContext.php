@@ -116,8 +116,6 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
     {
         // Create the server/service directory. We put this here because we need to make sure this is always run before any other tasks.
         Provision::fs()->mkdir($this->server_config_path);
-
-        $tasks = [];
-        return $tasks;
+        return [];
     }
 }

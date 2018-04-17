@@ -2,7 +2,7 @@
 
 namespace Aegir\Provision;
 
-class Task {
+class Step {
 
   public $startPrefix = '☐';
 

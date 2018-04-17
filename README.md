@@ -1,12 +1,12 @@
-# Provision CLI
+# Introduction
 
-![](/assets/server-verify.png)
+![](assets/server-verify.png)
 
 Provision is a command-line interface for quickly launching websites on any computer for development, testing, or production.
 
 Provision is awesome because it's designed to work with any system and because it's written in PHP making it familiar to web developers.
 
-Provision is stable because it comes from a long history of automating Drupal hosting within the [Aegir Project](https://www.aegirproject.org/). 
+Provision is stable because it comes from a long history of automating Drupal hosting within the [Aegir Project](https://www.aegirproject.org/).
 
 The 4.x version is a total rewrite, based on [Symfony Console](https://symfony.com/doc/3.4/console.html) and [Robo](https://robo.li/) components. We are working to make Provision a useful stand-alone command for managing any kind of web app.
 
@@ -22,7 +22,7 @@ You add your site's URLs and path to your source code using `provision save`and 
 
 Provision 4.x is a work in progress. If you want open source Drupal hosting now, please see [the Aegir Project](https://www.aegirproject.org/).
 
-Currently being developed on GitHub: [github.com/aegir-project/provision](https://github.com/aegir-project/provision).
+Currently being developed on GitHub: [github.com/provision4/provision](https://github.com/provision4/provision).
 
 Documentation is still in progress, currently available at [aegir.gitbooks.io/provision](https://aegir.gitbooks.io/provision/).
 
@@ -66,8 +66,4 @@ Provision 4.x is written in PHP, leveraging [Composer](https://getcomposer.org/)
 More documentation on the new Provision is coming soon. Thanks for your patience!
 
 --Jon
-
-## 
-
-
 

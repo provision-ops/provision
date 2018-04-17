@@ -1,9 +1,9 @@
 {
-    "name": "aegir/provision",
-    "description": "The CLI for the Aegir Hosting System.",
+    "name": "provision4/cli",
+    "description": "The Website Provisioning CLI",
     "keywords": ["Hosting", "Drupal", "Aegir"],
-    "homepage": "http://aegirproject.org/",
-    "type": "library",
+    "homepage": "https://github.com/provision4/provision",
+    "type": "project",
     "license": "GPL-2.0+",
     "require": {
         "consolidation/Robo": "^1.1",
@@ -19,15 +19,7 @@
     "authors": [
         {
             "name":     "Provision Contributors",
-            "homepage": "https://github.com/aegir-project/provision/graphs/contributors"
-        },
-        {
-            "name":     "Hosting Contributors",
-            "homepage": "https://github.com/aegir-project/hosting/graphs/contributors"
-        },
-        {
-            "name":     "Hostmaster Contributors",
-            "homepage": "https://github.com/aegir-project/hostmaster/graphs/contributors"
+            "homepage": "https://github.com/provision4/provision/graphs/contributors"
         },
         {
             "name":     "Jon Pugh",
@@ -36,12 +28,15 @@
         }
     ],
     "support": {
-        "issues": "https://www.drupal.org/project/issues/provision?categories=All",
-        "docs": "https://docs.aegirproject.org/"
+        "issues": "https://github.com/provision4/provision/issues",
+        "docs": "https://aegir.gitbooks.io/provision/"
     },
     "config": {
         "bin-dir": "bin/",
-        "sort-packages": true
+        "sort-packages": true,
+        "platform": {
+            "php": "5.5.9"
+        }
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

@@ -24,6 +24,11 @@ class PlatformContext extends ServiceSubscriber implements ConfigurationInterfac
     const TYPE = 'platform';
 
     /**
+     * @TODO: Move to PlatformType class for PHP once we have it.
+     */
+    const COMPOSER_INSTALL_DEFAULT = 'composer install --no-interaction';
+
+    /**
      * @var \Aegir\Provision\Context\ServerContext;
      */
     public $web_server;
@@ -193,6 +198,13 @@ class PlatformContext extends ServiceSubscriber implements ConfigurationInterfac
                     ->description('platform: Relative path to the "document root" in your source code. Leave blank if docroot is the root.')
                     ->required(FALSE)
             ,
+            'composer_install_command' =>
+                Provision::newProperty()
+                    ->description('The command to run immediately after cloning or pulling new code. If this is a production site, you would should add "--no-dev".')
+                    ->forceAsk()
+                    ->defaultValue(self::COMPOSER_INSTALL_DEFAULT)
+                    ->required(FALSE)
+            ,
         ];
 
         return $options;
@@ -223,17 +235,17 @@ class PlatformContext extends ServiceSubscriber implements ConfigurationInterfac
 
         $this->getProvision()->io()->newLine();
     
-        $tasks = [];
+        $steps = [];
 
         // If platform files don't exist, but has git url or makefile, build now.
         if ($this->getProperty('git_url')) {
 
             if ($this->fs->exists($this->getProperty('root'))) {
-                $tasks['platform.files'] = $this->getProvision()->newTask()
+                $steps['platform.files'] = Provision::newStep()
                     ->success('Cloning git repository... Files already exist.');
             }
             else {
-                $tasks['platform.git'] = $this->getProvision()->newTask()
+                $steps['platform.git'] = Provision::newStep()
                     ->start('Cloning git repository...')
                     ->execute(function () {
                         if (!$this->fs->exists($this->getProperty('root'))) {
@@ -259,7 +271,7 @@ class PlatformContext extends ServiceSubscriber implements ConfigurationInterfac
         if ($this->getProperty('makefile')) {
 
             if ($this->fs->exists($this->getProperty('document_root_full'))) {
-                $tasks['platform.files'] = $this->getProvision()->newTask()
+                $steps['platform.files'] = Provision::newStep()
                     ->start('Building platform from makefile... Files already exist.');
             }
             else {
@@ -267,7 +279,7 @@ class PlatformContext extends ServiceSubscriber implements ConfigurationInterfac
                 if (!Provision::fs()->isAbsolutePath($makefile)) {
                     $makefile = $this->getProperty('root') . DIRECTORY_SEPARATOR . $makefile;
                 }
-                $tasks['platform.make'] = $this->getProvision()->newTask()
+                $steps['platform.make'] = Provision::newStep()
                     ->start('Building platform from makefile...')
                     ->execute(function () use ($makefile) {
                         $drush = realpath(__DIR__ . '/../../../bin/drush');
@@ -289,13 +301,13 @@ class PlatformContext extends ServiceSubscriber implements ConfigurationInterfac
         }
 
         // If files already exist, say so.
-        $tasks['platform.found'] = $this->getProvision()->newTask()
+        $steps['platform.found'] = Provision::newStep()
             ->start('Checking root path for files...')
             ->execute(function () {
                 return $this->fs->exists($this->getProperty('root'))? 0: 1;
             });
 
-        return $tasks;
+        return $steps;
         
 //        return parent::verify();
     }

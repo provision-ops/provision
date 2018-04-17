@@ -503,8 +503,8 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
         return posix_getuid();
     }
 
-    static public function newTask() {
-        return new Task();
+    static public function newStep() {
+        return new Step();
     }
     static public function newProperty($description = '') {
         return new Property($description);
