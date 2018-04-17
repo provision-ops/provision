@@ -33,11 +33,11 @@ class ServerContextDockerCompose  {
     }
 
     public function preVerify() {
-        $tasks = [];
+        $steps = [];
         $filename = $this->server->getProperty('server_config_path') . DIRECTORY_SEPARATOR . 'docker-compose.yml';
 
       // Write docker-compose.yml file.
-      $tasks['docker.compose.write'] = Provision::newStep()
+      $steps['docker.compose.write'] = Provision::newStep()
         ->start('Generating docker-compose.yml file...')
         ->success('Generating docker-compose.yml file... Saved to ' . $filename)
         ->failure('Generating docker-compose.yml file... Saved to ' . $filename)
@@ -128,7 +128,7 @@ ENV;
           $this->server->getProvision()->getTasks()->taskLog($debug_message, LogLevel::INFO)->run()->getExitCode();
         });
 
-        return $tasks;
+        return $steps;
     }
 
     /**
@@ -138,14 +138,14 @@ ENV;
 
         // Run docker-compose up with options
         $command = $this->dockerComposeCommand('up', $this::DOCKER_COMPOSE_UP_OPTIONS);
-        $tasks['docker.compose.up'] = Provision::newStep()
+        $steps['docker.compose.up'] = Provision::newStep()
             ->start("Running <info>{$command}</info> in <info>{$this->server->server_config_path}</info> ...")
             ->execute(function() use ($command) {
                 return $this->server->shell_exec($command, NULL, 'exit');
             })
         ;
 
-        return $tasks;
+        return $steps;
     }
 
     /**
