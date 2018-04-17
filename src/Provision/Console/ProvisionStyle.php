@@ -29,6 +29,8 @@ class ProvisionStyle extends DrupalStyle {
     const ICON_FAILED = '🔥';
     const ICON_COMMAND = '$';
     const ICON_BULLET = '➤';
+    const ICON_FOLDER = '📂';
+    const ICON_FILE = '🗎';
 
     public function __construct(InputInterface $input, OutputInterface $output)
     {

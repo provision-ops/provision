@@ -8,7 +8,11 @@ namespace Aegir\Provision;
 
 use Aegir\Provision\Common\ProvisionAwareTrait;
 use Aegir\Provision\Console\Config;
+use Aegir\Provision\Context\ServerContextDockerCompose;
+use Aegir\Provision\Robo\ProvisionCollection;
+use Aegir\Provision\Robo\ProvisionCollectionBuilder;
 use Aegir\Provision\Console\ProvisionStyle;
+use Aegir\Provision\Service\DockerServiceInterface;
 use Consolidation\AnnotatedCommand\CommandFileDiscovery;
 use Drupal\Console\Core\Style\DrupalStyle;
 use Robo\Collection\CollectionBuilder;
@@ -87,6 +91,14 @@ class Context implements BuilderAwareInterface
     public $fs;
 
     /**
+     * If server has any services that implement DockerServiceInterface,
+     * $this->dockerCompose will be loaded.
+     *
+     * @var \Aegir\Provision\Context\ServerContextDockerCompose|null
+     */
+    public $dockerCompose = NULL;
+
+    /**
      * Context constructor.
      *
      * @param $name
@@ -106,6 +118,15 @@ class Context implements BuilderAwareInterface
         $this->prepareServices();
 
         $this->fs = new Filesystem();
+
+        // If any assigned services implement DockerServiceInterface, load our
+        // ServerContextDockerCompose class.
+        foreach ($this->services as $service) {
+            if ($service instanceof DockerServiceInterface) {
+                $this->dockerCompose = new ServerContextDockerCompose($service->provider);
+                break;
+            }
+        }
     }
 
     /**
@@ -580,6 +601,17 @@ class Context implements BuilderAwareInterface
         }
     }
 
+    static function getClassFromFilename($config_path) {
+        $context_data = Yaml::parse(file_get_contents($config_path));
+
+        if (isset($context_data['context_class']) && !empty($context_data['context_class'])) {
+            return $context_data['context_class'];
+        }
+        else {
+            return self::getClassName($context_data['type']);
+        }
+    }
+
     /**
      * Retrieve the class name of a specific context type.
      *
@@ -605,6 +637,8 @@ class Context implements BuilderAwareInterface
      * Collect all services for the context and run the verify() method on them.
      *
      * If this context is a Service Subscriber, the provider service will be verified first.
+     *
+     * @throws \Exception
      */
     public function verifyCommand()
     {
@@ -623,19 +657,31 @@ class Context implements BuilderAwareInterface
 //            $collection->addCode(function() use ($friendlyName, $type) {
 //                $this->getProvision()->io()->section("Verify service: {$friendlyName}");
 //            }, 'logging.' . $type);
-            $steps['logging.' . $type] = function() use ($friendlyName, $type) {
-                $this->getProvision()->io()->section("Verify service: {$friendlyName}");
-            };
 
             $service->setContext($this);
-            $steps = array_merge($steps, $service->verify());
+            $service_steps = $service->verify();
+            if (count($service_steps)) {
+                $steps['logging.' . $type] = function() use ($friendlyName, $type) {
+                    $this->getProvision()->io()->section("Verify service: {$friendlyName}");
+                };
+            }
+
+            $steps = array_merge($steps, $service_steps);
 
             foreach ($steps as $title => $task) {
                 $this->addStepToCollection($collection, $title, $task, $service);
             }
             $steps = [];
         }
+        // Add postVerify() tasks to the collection.
+        $postTasks = $this->postVerify();
+        if (count($postTasks)) {
+            $this->addStepToCollection($collection, 'logging.post', function() use ($friendlyName, $type) {
+                $this->getProvision()->io()->section("Verify server: Finalize");
+            });
 
+            $this->prepareSteps($collection, $this->postVerify());
+        }
         $result = $collection->run();
 
         if ($result->wasSuccessful()) {
@@ -647,11 +693,26 @@ class Context implements BuilderAwareInterface
     }
 
     /**
+     * Maps array of tasks into a collection.
+     *
+     * @param $collection
+     * @param $steps
+     *
+     * @throws \Exception
+     */
+    protected function prepareSteps(CollectionBuilder $collection, $steps) {
+        foreach ($steps as $title => $step) {
+            $collection->getConfig()->set($title, $step);
+            $this->addStepToCollection($collection, $title, $step);
+        }
+    }
+
+    /**
      * Helper to add a Step/task/callable/collection to the primary collection.
      *
      * Detects what type of thing it is, and either runs Collection->add(), $collection->addCode() or throws an exception.
      *
-     * @param \Aegir\Provision\Robo\ProvisionCollection $collection
+     * @param \Aegir\Provision\Robo\ProvisionCollection|\Robo\Collection\CollectionBuilder $collection
      * @param string $title
      * @param \Aegir\Provision\Step|callable|\Robo\Task\BaseTask|\Robo\Collection\CollectionBuilder $step
      * @param $service
@@ -689,9 +750,21 @@ class Context implements BuilderAwareInterface
      * any other verify takes place.
      */
     function preVerify() {
-      $tasks = [];
 
-      // Lookup possible hook files.
+        $steps = [];
+
+        // If dockerCompose engine is available, add those steps.
+        if ($this->dockerCompose) {
+            $steps += $this->dockerCompose->preVerify();
+        }
+
+        foreach ($this->servicesInvoke('preVerify' . ucfirst($this->type)) as $serviceSteps) {
+            if (is_array($serviceSteps)) {
+                $steps += $serviceSteps;
+            }
+        }
+
+        // Lookup possible hook files.
       // @TODO: create methods on the contexts to do this.
       if ($this->type == 'server') {
         $lookup_paths[] = $this->server_config_path;
@@ -705,7 +778,7 @@ class Context implements BuilderAwareInterface
         $yml_file_path_machine_name = preg_replace('/[^a-zA-Z0-9\']/', '_', $yml_file_path);
 
         if (file_exists($yml_file_path)) {
-          $tasks['yml_hooks_found'] = Provision::newStep()
+          $steps['yml_hooks_found'] = Provision::newStep()
             ->start("Custom hooks file found: <comment>{$yml_file_path}</comment>")
             ->failure("Custom hooks file found: <comment>{$yml_file_path}</comment>: Unable to parse YAML.")
             ->execute(function () use ($yml_file_path) {
@@ -714,7 +787,7 @@ class Context implements BuilderAwareInterface
               })
           ;
 
-          $tasks['yml_hooks_' . $yml_file_path_machine_name] = Provision::newStep()
+          $steps['yml_hooks_' . $yml_file_path_machine_name] = Provision::newStep()
             ->start("Running <comment>hooks:verify:pre</comment> from {$yml_file_path}")
             ->success("Successfully ran <comment>hooks:verify:pre</comment> from {$yml_file_path}")
             ->failure("Errors while running <comment>hooks:verify:pre</comment> from {$yml_file_path}")
@@ -733,7 +806,7 @@ class Context implements BuilderAwareInterface
           ;
         }
       }
-       return $tasks;
+       return $steps;
     }
 
     /**
@@ -744,6 +817,28 @@ class Context implements BuilderAwareInterface
     function verify() {
        return [];
     }
+
+    /**
+     * Stub to be implemented by context types.
+     *
+     * Run extra tasks before services take over.
+     */
+    function postVerify() {
+        $steps = [];
+
+        // If dockerCompose engine is available, add those steps.
+        if ($this->dockerCompose) {
+            $steps = $this->dockerCompose->postVerify();
+        }
+
+        foreach ($this->servicesInvoke('postVerify' . ucfirst($this->type)) as $serviceSteps) {
+            if (is_array($serviceSteps)) {
+                $steps += $serviceSteps;
+            }
+        }
+        return $steps;
+    }
+
 //
 //
 //        $return_codes = [];
@@ -880,26 +975,22 @@ class Context implements BuilderAwareInterface
 
     if ($this->getProvision()->getOutput()->isVerbose()) {
       $this->getProvision()->io()->commandBlock($command, $effective_wd);
+      $this->getProvision()->io()->customLite("Writing output to <comment>$tmp_output_file</comment>", ProvisionStyle::ICON_FILE, 'comment');
+
+        // If verbose, Use tee so we see it and it saves to file.
+        $command .= "2>&1 | tee $tmp_output_file";
+    }
+    else {
+        // If not verbose, just save it to file.
+        $command .= "> $tmp_output_file 2>&1";
     }
 
-    // Output and Errors to files.
-    $command .= "> $tmp_output_file 2> $tmp_error_file";
-
-    chdir($effective_wd);
-    exec($command, $output, $exit);
-    chdir($cwd);
-
-    $stderr = file_get_contents($tmp_error_file);
+    // Output and Errors to file.
+    $exit = $this->process_exec($command, $effective_wd);
     $stdout = file_get_contents($tmp_output_file);
 
-    if (!empty($stdout)){
-      if ($this->getProvision()->getOutput()->isVerbose()) {
-        $this->getProvision()->io()->outputBlock($stdout);
-      }
-    }
-
     if ($exit != ResultData::EXITCODE_OK) {
-      throw new \Exception($stderr);
+      throw new \Exception($stdout);
     }
 
     return ${$return};
@@ -913,7 +1004,10 @@ class Context implements BuilderAwareInterface
   public function process_exec($command, $dir = NULL) {
 
     $process = new Process($command);
-    $env = getenv();
+    $process->setTimeout(null);
+    $process->setTty(true);
+
+    $env = $_SERVER;
 
     $env['PROVISION_CONTEXT'] = $this->name;
     $env['PROVISION_CONTEXT_CONFIG_FILE'] = $this->config_path;
@@ -927,9 +1021,14 @@ class Context implements BuilderAwareInterface
     if ($dir){
       $process->setWorkingDirectory($dir);
     }
+
+//    print $this->getProvision()->getOutput()->isVerbose(); die; // 'verbose!@!!': 'not verbose';
     $io = $this->getProvision()->io();
-    $process->run(function ($type, $buffer) use ($io) {
-        $io->outputBlock(trim($buffer));
+    $verbose = (bool) $this->getProvision()->getOutput()->isVerbose();
+    $process->run(function ($type, $buffer) use ($verbose, $io) {
+        if ($verbose) {
+            $io->writeln(trim($buffer));
+        }
     });
     return $process->getExitCode();
   }

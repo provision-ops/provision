@@ -6,7 +6,6 @@ use Aegir\Provision\Console\Config;
 use Aegir\Provision\ServiceProvider;
 use Aegir\Provision\Property;
 use Aegir\Provision\Provision;
-use Aegir\Provision\Service\DockerServiceInterface;
 use Psr\Log\LogLevel;
 use Robo\ResultData;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -66,6 +65,11 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
     static function option_documentation()
     {
         return [
+            'context_class' => Provision::newProperty()
+                ->description('The name of the class to load for this context.')
+                ->hidden()
+                ->defaultValue(self::getClassName(self::TYPE))
+            ,
             'remote_host' =>
                 Provision::newProperty()
                     ->description('server: host name')
@@ -102,15 +106,5 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
                     ->hidden()
             ,
         ];
-    }
-
-    /**
-     * @return array
-     */
-    public function verify()
-    {
-        // Create the server/service directory. We put this here because we need to make sure this is always run before any other tasks.
-        Provision::fs()->mkdir($this->server_config_path);
-        return [];
     }
 }
