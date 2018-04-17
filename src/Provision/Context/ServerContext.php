@@ -30,6 +30,14 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
     const TYPE = 'server';
 
     /**
+     * If server has any services that implement DockerServiceInterface,
+     * $this->dockerCompose will be loaded.
+     *
+     * @var \Aegir\Provision\Context\ServerContextDockerCompose|null
+     */
+    public $dockerCompose = NULL;
+
+    /**
      * @var string
      * The path to store the server's configuration files in.  ie. /var/aegir/config/server_master.
      */
@@ -57,6 +65,15 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
         }
         else {
             $this->server_config_path = $this->getProperty('server_config_path');
+        }
+
+        // If any assigned services implement DockerServiceInterface, load our
+        // ServerContextDockerCompose class.
+        foreach ($this->services as $service) {
+            if ($service instanceof DockerServiceInterface) {
+                $this->dockerCompose = new ServerContextDockerCompose($this);
+                break;
+            }
         }
     }
 
@@ -114,8 +131,31 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
      */
     public function preVerify()
     {
-        // Create the server/service directory. We put this here because we need to make sure this is always run before any other tasks.
+        // Create the server/service directory. We put this here because we need to make sure this is always run before any other steps, no matter what.
         Provision::fs()->mkdir($this->server_config_path);
-        return [];
+
+        $steps = [];
+
+        // If dockerCompose engine is available, add those steps.
+        if ($this->dockerCompose) {
+            $steps += $this->dockerCompose->preVerify();
+        }
+
+        return $steps;
+    }
+
+    /**
+     * @return array
+     */
+    public function postVerify()
+    {
+        $steps = [];
+
+        // If dockerCompose engine is available, add those steps.
+        if ($this->dockerCompose) {
+            $steps += $this->dockerCompose->postVerify();
+        }
+
+        return $steps;
     }
 }

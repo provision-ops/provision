@@ -33,11 +33,6 @@ class HttpApacheDockerService extends HttpApacheService implements DockerService
   const DOCKER_USER_NAME = 'provision';
   public $docker_user_name = 'provision';
 
-  const DOCKER_COMPOSE_COMMAND = 'docker-compose';
-  const DOCKER_COMPOSE_UP_COMMAND = 'docker-compose up';
-  const DOCKER_COMPOSE_UP_OPTIONS = ' -d --build --force-recreate ';
-
-
   /**
    * @var string The name of this server's container.
    */
@@ -61,7 +56,12 @@ class HttpApacheDockerService extends HttpApacheService implements DockerService
       $this->containerName = "provision_http_{$this->provider->name}";
       $this->containerTag = "provision/http:{$this->provider->name}";
 
-      $this->setProperty('restart_command', $this->dockerComposeCommand('exec http sudo apache2ctl graceful'));
+      // The dockerCompose class is only loaded when server has docker services
+      // assigned already. The class is loaded during a 'save' command, before
+      // it is assigned to a server.
+      if ($this->provider->dockerCompose) {
+          $this->setProperty('restart_command', $this->provider->dockerCompose->dockerComposeCommand('exec http sudo apache2ctl graceful'));
+      }
       $this->setProperty('web_group', $this->default_web_group());
   }
 
@@ -194,46 +194,6 @@ class HttpApacheDockerService extends HttpApacheService implements DockerService
 
     return $tasks;
 
-  }
-
-  /**
-   * @return \Symfony\Component\Finder\SplFileInfo[]
-   */
-  function findDockerComposeFiles() {
-    $finder = new Finder();
-    $finder->in($this->provider->getProperty('server_config_path'));
-    $finder->files()->name('docker-compose*.yml');
-    foreach ($finder as $file) {
-      $dc_files[] = $file;
-    }
-    return $dc_files;
-  }
-
-  /**
-   * Return the base docker-compose command with options automatically populated.
-   *
-   * @param string $command
-   * @param string $options
-   * @param bool $load_files Set to TRUE if you are not running docker-compose
-   *   command in the server_config_path. If TRUE, all docker-compose*.tml files
-   *   will be found and added using the `-f` option.
-   *
-   * @return string
-   */
-  function dockerComposeCommand($command = '', $options = '', $load_files = FALSE) {
-
-    // Generate the docker-compose command.
-    $docker_compose = self::DOCKER_COMPOSE_COMMAND;
-
-    // If told to load files, do it.
-    if ($load_files) {
-      foreach ($this->findDockerComposeFiles() as $file) {
-        $docker_compose .= ' -f ' . $file->getPathname();
-      }
-    }
-
-    $command = "{$docker_compose} {$command} {$options}";
-    return $command;
   }
 
     /**
