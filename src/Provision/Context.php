@@ -1009,6 +1009,8 @@ class Context implements BuilderAwareInterface
 
     $env = $_SERVER;
 
+    $this->getProvision()->getLogger()->debug('Environment: ' . print_r($env, 1));
+
     $env['PROVISION_CONTEXT'] = $this->name;
     $env['PROVISION_CONTEXT_CONFIG_FILE'] = $this->config_path;
 
