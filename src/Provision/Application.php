@@ -3,6 +3,7 @@
 namespace Aegir\Provision;
 
 use Aegir\Provision\Command\CdCommand;
+use Aegir\Provision\Command\DrushCommand;
 use Aegir\Provision\Command\SaveCommand;
 use Aegir\Provision\Command\ServicesCommand;
 use Aegir\Provision\Command\SetupCommand;
@@ -145,6 +146,7 @@ class Application extends BaseApplication
     protected function getDefaultCommands()
     {
         $commands[] = new CdCommand();
+        $commands[] = new DrushCommand();
         $commands[] = new HelpCommand();
         $commands[] = new ListCommand();
         $commands[] = new SaveCommand();
