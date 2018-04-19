@@ -42,7 +42,11 @@ class DrushCommand extends Command
         $inputDefinition[] = new InputArgument(
             'drush_command_string',
             InputArgument::OPTIONAL,
-            'The full drush command to run including options.'
+            'The full drush command to run including options. Pass the entire command including options in a string:
+                 Examples:
+                 $  provision drush "status --fields=root,uri,drupal-version"
+               
+            '
         );
         return $inputDefinition;
     }
@@ -60,7 +64,10 @@ class DrushCommand extends Command
 
         // Generate the full path and command. (Currently using built in drush (v8)
         // Provision's built in drush acts as a wrapper for site local drush when run in that directory.
-        $command = dirname(dirname(dirname(dirname(__FILE__)))) . '/bin/drush ' . $input->getArgument('drush_command_string');
+        $root = $this->context->getProperty('root');
+        $uri = $this->context->getProperty('uri');
+
+        $command = dirname(dirname(dirname(dirname(__FILE__)))) . '/bin/drush ' . $input->getArgument('drush_command_string') . " --root=$root --uri=$uri ";
 
         $this->getProvision()->getLogger()->debug("Running $command");
 
