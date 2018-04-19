@@ -31,9 +31,17 @@ class ComposerScripts {
         if (file_exists($root_dir) && is_writable($root_dir)) {
             $drushrc = <<<PHP
 <?php
+
+// Includes the Aegir Provision 3.x drush commands when running bin/drush.
 \$options['include'] = array(
     dirname(dirname(dirname(__FILE__))) . '/aegir/provision',
 );
+
+// Dynamically loads Provision4 context data into aegir/provision 7.x-3.x drush aliases!
+\$options['alias-path'] = array(
+    dirname(dirname(dirname(dirname(__FILE__)))) . '/src/Provision/Console/Provision3Aliases',
+);
+
 PHP;
             if (file_put_contents($root_dir . '/drushrc.php', $drushrc)) {
                 print "Wrote drushrc.php to $root_dir \n";
