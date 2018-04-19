@@ -130,6 +130,18 @@ class Context implements BuilderAwareInterface
     }
 
     /**
+     * @return string Working directory for the context. Either the site or platform root, or the server config path.
+     */
+    public function getWorkingDir() {
+        if ($this->hasProperty('root')) {
+            return $this->getProperty('root');
+        }
+        elseif ($this->hasProperty('server_config_path')) {
+            return $this->getProperty('server_config_path');
+        }
+    }
+
+    /**
      * Load and process the Config object for this context.
      *
      * @param array $options
