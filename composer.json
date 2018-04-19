@@ -6,6 +6,7 @@
     "type": "project",
     "license": "GPL-2.0+",
     "require": {
+        "aegir/provision": "dev-7.x-3.x",
         "consolidation/Robo": "dev-block-output",
         "consolidation/annotated-command": "~2",
         "drupal/console-core": "1.0.2",
@@ -48,5 +49,10 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {"Aegir\\Provision\\": "src/Provision"}
+    },
+    "scripts": {
+        "post-package-install": [
+            "Aegir\\Provision\\Console\\ComposerScripts::writeDrushRcForVendorDrushDrush"
+        ]
     }
 }

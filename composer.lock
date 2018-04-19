@@ -4,8 +4,43 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "9a25b24761df3282da478cb6fb3b3358",
+    "content-hash": "d0c25882c73d1f35a778a56e99a10fe1",
     "packages": [
+        {
+            "name": "aegir/provision",
+            "version": "dev-7.x-3.x",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/aegir-project/provision.git",
+                "reference": "5fb408fc03bf68afbb39ecf5e37a2cec96656f26"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/aegir-project/provision/zipball/5fb408fc03bf68afbb39ecf5e37a2cec96656f26",
+                "reference": "5fb408fc03bf68afbb39ecf5e37a2cec96656f26",
+                "shasum": ""
+            },
+            "type": "drupal-drush",
+            "autoload": {
+                "psr-0": {
+                    "Provision_": [
+                        "Provision"
+                    ]
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Aegir maintainers",
+                    "homepage": "http://docs.aegirproject.org/en/3.x/community/core-team/"
+                }
+            ],
+            "description": "Drush commands powering the back-end of Aegir",
+            "time": "2018-04-19T14:27:59+00:00"
+        },
         {
             "name": "consolidation/annotated-command",
             "version": "2.8.3",
@@ -2301,6 +2336,7 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
+        "aegir/provision": 20,
         "consolidation/robo": 20
     },
     "prefer-stable": true,
