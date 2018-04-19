@@ -51,7 +51,7 @@
         "psr-4": {"Aegir\\Provision\\": "src/Provision"}
     },
     "scripts": {
-        "post-package-install": [
+        "post-install-cmd": [
             "Aegir\\Provision\\Console\\ComposerScripts::writeDrushRcForVendorDrushDrush"
         ]
     }

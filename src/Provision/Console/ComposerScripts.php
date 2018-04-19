@@ -21,14 +21,14 @@ use Composer\Installer\PackageEvent;
 class ComposerScripts {
 
     /**
-     * @param \Composer\Installer\PackageEvent $event
+     * @param \Composer\Script\Event $event
      *
      * @throws \Exception
      */
-    public static function writeDrushRcForVendorDrushDrush(PackageEvent $event)
+    public static function writeDrushRcForVendorDrushDrush(Event $event)
     {
         $root_dir = dirname(dirname(dirname(dirname(__FILE__)))) . '/vendor/drush/drush';
-        if ($event->getOperation()->getPackage()->getName() == 'drush/drush' && file_exists($root_dir) && is_writable($root_dir)) {
+        if (file_exists($root_dir) && is_writable($root_dir)) {
             $drushrc = <<<PHP
 <?php
 \$options['include'] = array(
