@@ -36,4 +36,20 @@ class Step {
         $this->startPrefix = $prefix;
         return $this;
     }
+
+    /**
+     * Provide an easy way to create a new step.
+     *
+     * Usage:
+     *
+     *   $steps['1'] = Step::create()
+     *     ->start('Doing something...')
+     *     ->success('Doing something... Worked!')
+     *
+     *
+     * @return \Aegir\Provision\Step
+     */
+    public static function create() {
+            return new self();
+    }
 }
