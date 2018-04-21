@@ -11,7 +11,6 @@ use Aegir\Provision\Console\ProvisionStyle;
 use Aegir\Provision\Console\ArgvInput;
 use Aegir\Provision\Context\ServerContext;
 use Aegir\Provision\Context\ServerContextLocal;
-use Aegir\Provision\Context\ServerContextDockerCompose;
 use Aegir\Provision\Robo\ProvisionCollectionBuilder;
 use Aegir\Provision\Robo\ProvisionExecutor;
 use Aegir\Provision\Robo\ProvisionTasks;

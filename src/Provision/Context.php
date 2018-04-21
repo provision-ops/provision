@@ -8,7 +8,7 @@ namespace Aegir\Provision;
 
 use Aegir\Provision\Common\ProvisionAwareTrait;
 use Aegir\Provision\Console\Config;
-use Aegir\Provision\Context\ServerContextDockerCompose;
+use Aegir\Provision\Engine\DockerComposeEngine;
 use Aegir\Provision\Robo\ProvisionCollection;
 use Aegir\Provision\Robo\ProvisionCollectionBuilder;
 use Aegir\Provision\Console\ProvisionStyle;
@@ -94,7 +94,7 @@ class Context implements BuilderAwareInterface
      * If server has any services that implement DockerServiceInterface,
      * $this->dockerCompose will be loaded.
      *
-     * @var \Aegir\Provision\Context\ServerContextDockerCompose|null
+     * @var \Aegir\Provision\Context\DockerComposeEngine|null
      */
     public $dockerCompose = NULL;
 
@@ -123,7 +123,7 @@ class Context implements BuilderAwareInterface
         // ServerContextDockerCompose class.
         foreach ($this->services as $service) {
             if ($service instanceof DockerServiceInterface) {
-                $this->dockerCompose = new ServerContextDockerCompose($service->provider);
+                $this->dockerCompose = new DockerComposeEngine($service->provider);
                 break;
             }
         }

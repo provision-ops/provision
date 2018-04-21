@@ -1,6 +1,6 @@
 <?php
 
-namespace Aegir\Provision\Context;
+namespace Aegir\Provision\Engine;
 
 use Aegir\Provision\Provision;
 use Aegir\Provision\Service\DockerServiceInterface;
@@ -13,7 +13,7 @@ use Symfony\Component\Yaml\Yaml;
  *
  * @package Aegir\Provision\Context
  */
-class ServerContextDockerCompose  {
+class DockerComposeEngine  {
 
     /**
      * @var \Aegir\Provision\Context\ServerContext
