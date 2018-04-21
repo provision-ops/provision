@@ -2,6 +2,8 @@
 
 namespace Aegir\Provision\Engine;
 
+use Aegir\Provision\Context\ServerContext;
+use Aegir\Provision\Engine\EngineInterface;
 use Aegir\Provision\Provision;
 use Aegir\Provision\Service\DockerServiceInterface;
 use Psr\Log\LogLevel;
@@ -13,7 +15,7 @@ use Symfony\Component\Yaml\Yaml;
  *
  * @package Aegir\Provision\Context
  */
-class DockerComposeEngine  {
+class DockerComposeEngine implements EngineInterface {
 
     /**
      * @var \Aegir\Provision\Context\ServerContext

@@ -59,8 +59,8 @@ class HttpApacheDockerService extends HttpApacheService implements DockerService
       // The dockerCompose class is only loaded when server has docker services
       // assigned already. The class is loaded during a 'save' command, before
       // it is assigned to a server.
-      if ($this->provider->dockerCompose) {
-          $this->setProperty('restart_command', $this->provider->dockerCompose->dockerComposeCommand('exec http sudo apache2ctl graceful'));
+      if ($this->provider->engine) {
+          $this->setProperty('restart_command', $this->provider->engine->dockerComposeCommand('exec http sudo apache2ctl graceful'));
       }
       $this->setProperty('web_group', $this->default_web_group());
   }

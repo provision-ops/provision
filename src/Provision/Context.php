@@ -9,6 +9,7 @@ namespace Aegir\Provision;
 use Aegir\Provision\Common\ProvisionAwareTrait;
 use Aegir\Provision\Console\Config;
 use Aegir\Provision\Engine\DockerComposeEngine;
+use Aegir\Provision\Engine\NativeEngine;
 use Aegir\Provision\Robo\ProvisionCollection;
 use Aegir\Provision\Robo\ProvisionCollectionBuilder;
 use Aegir\Provision\Console\ProvisionStyle;
@@ -94,9 +95,9 @@ class Context implements BuilderAwareInterface
      * If server has any services that implement DockerServiceInterface,
      * $this->dockerCompose will be loaded.
      *
-     * @var \Aegir\Provision\Context\DockerComposeEngine|null
+     * @var \Aegir\Provision\Engine\DockerComposeEngine|\Aegir\Provision\Engine\NativeEngine
      */
-    public $dockerCompose = NULL;
+    public $engine = NULL;
 
     /**
      * Context constructor.
@@ -123,7 +124,7 @@ class Context implements BuilderAwareInterface
         // ServerContextDockerCompose class.
         foreach ($this->services as $service) {
             if ($service instanceof DockerServiceInterface) {
-                $this->dockerCompose = new DockerComposeEngine($service->provider);
+                $this->engine = new DockerComposeEngine($service->provider);
                 break;
             }
         }
@@ -766,8 +767,8 @@ class Context implements BuilderAwareInterface
         $steps = [];
 
         // If dockerCompose engine is available, add those steps.
-        if ($this->dockerCompose) {
-            $steps += $this->dockerCompose->preVerify();
+        if ($this->engine) {
+            $steps += $this->engine->preVerify();
         }
 
         foreach ($this->servicesInvoke('preVerify' . ucfirst($this->type)) as $serviceSteps) {
@@ -839,8 +840,8 @@ class Context implements BuilderAwareInterface
         $steps = [];
 
         // If dockerCompose engine is available, add those steps.
-        if ($this->dockerCompose) {
-            $steps = $this->dockerCompose->postVerify();
+        if ($this->engine) {
+            $steps = $this->engine->postVerify();
         }
 
         foreach ($this->servicesInvoke('postVerify' . ucfirst($this->type)) as $serviceSteps) {
