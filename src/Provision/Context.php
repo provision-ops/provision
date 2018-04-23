@@ -800,7 +800,7 @@ class Context implements BuilderAwareInterface
               // @TODO: Put this in it's own method, it probably needs a whole class, really.
               if (isset($this->custom_yml_data['hooks']['verify']['pre'])) {
                 $command = 'set -e; ' . $this->custom_yml_data['hooks']['verify']['pre'];
-                return $this->process_exec($command);
+                return $this->process_exec($command)->getExitCode();
               }
             })
           ;
@@ -979,7 +979,9 @@ class Context implements BuilderAwareInterface
 
         // If verbose, Use tee so we see it and it saves to file.
         // Thanks to https://askubuntu.com/a/731237
-        $command .= " 2>&1 | tee -a $tmp_output_file";
+        // Uses "2>&1 |" so it works with older bash shells.
+        $command = "$command 2>&1 | tee -a $tmp_output_file; exit \${PIPESTATUS[0]}
+";
     }
     else {
         // If not verbose, just save it to file.
@@ -987,7 +989,10 @@ class Context implements BuilderAwareInterface
     }
 
     // Output and Errors to file.
-    $exit = $this->process_exec($command, $effective_wd);
+    $process = $this->process_exec($command, $effective_wd);
+    $exit_code = $process->getExitCode();
+//    print 'EXIT CODE! ' . $exit_code; die;
+    $exit = $process->getExitCode();
     $stdout = file_get_contents($tmp_output_file);
 
     if ($exit != ResultData::EXITCODE_OK) {
@@ -1033,7 +1038,7 @@ class Context implements BuilderAwareInterface
             $io->writeln(trim($buffer));
         }
     });
-    return $process->getExitCode();
+    return $process;
   }
 
     /**
