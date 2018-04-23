@@ -71,6 +71,17 @@ class ServiceSubscriber extends Context
     }
 
     /**
+     * Return if a specific service subscription exists on this context.
+     *
+     * @param $type
+     *
+     * @return bool
+     */
+    public function hasSubscription($type) {
+        return isset($this->serviceSubscriptions[$type]);
+    }
+
+    /**
      * Loads service_subscriptions properties into the config tree.
      * @param $root_node
      */
