@@ -14,7 +14,7 @@ WEB_UID=$3
 echo "$PREFIX Recreating user '$USER_NAME' UID/GID to '$USER_UID'...
 "
 userdel $USER_NAME
-chown $USER_UID:$USER_UID /var/$USER_NAME
+chown $USER_UID:$USER_UID /var/$USER_NAME -R
 
 addgroup --gid $USER_UID $USER_NAME
 useradd --no-log-init --uid $USER_UID --gid $USER_UID --system --home-dir /var/$USER_NAME $USER_NAME
