@@ -191,4 +191,32 @@ ENV;
         $command = "{$docker_compose} {$command} {$options}";
         return $command;
     }
+
+    /**
+     * Return flags for docker volumes based on the system.
+     *
+     * If mac, use "delegated".
+     * If selinux, use "z".
+     * Otherwise, use provision console config 'docker_volume_flags'.
+     *
+     * Includes the ":" prefix, if any flag is found.
+     */
+    public function getVolumeFlags() {
+
+        // For macOS, use 'delegated', the fasted mode. See https://docs.docker.com/storage/bind-mounts/#configure-mount-consistency-for-macos
+        if ($this->server->getProvision()->getConfig()->get('os_version') == 'Darwin') {
+            $default_flag = 'delegated';
+        }
+        // For SELinux-enabled systems, use 'v'.  See https://docs.docker.com/storage/bind-mounts/#configure-the-selinux-label
+        elseif (exec('sestatus | grep status | grep enabled', $output, $exit) && $exit == 0) {
+            $default_flag = 'zeeee';
+        }
+        else {
+            $default_flag = '';
+        }
+
+       $volume_flag = $this->server->getProvision()->getConfig()->get('docker_volume_flags', $default_flag);
+
+       return $volume_flag? ':' . $volume_flag: '';
+    }
 }
