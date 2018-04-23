@@ -265,6 +265,8 @@ class HttpApacheDockerService extends HttpApacheService implements DockerService
      *   HOST_AEGIR_HOME=/home/you/Projects/aegir/aegir-home
      *
      * @return array
+     *
+     * @throws \Exception
      */
     function getVolumes() {
         $volumes = array();
@@ -292,7 +294,7 @@ class HttpApacheDockerService extends HttpApacheService implements DockerService
         // Map a volume for every site.
         $contexts = $this->getProvision()->getAllContexts();
         foreach ($contexts as $context) {
-            if ($context instanceof ServiceSubscriber && $context->getSubscription('http')->server->name == $this->provider->name) {
+            if ($context instanceof ServiceSubscriber && $context->hasSubscription('http') && $context->getSubscription('http')->server->name == $this->provider->name) {
                 $container_path = $this->mapContainerPath($context->getProperty('root'));
                 $volumes[$container_path] = $context->getProperty('root') . ':' . $container_path . $this->provider->dockerCompose->getVolumeFlags();
             }
