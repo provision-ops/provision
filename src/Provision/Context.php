@@ -979,7 +979,7 @@ class Context implements BuilderAwareInterface
 
         // If verbose, Use tee so we see it and it saves to file.
         // Thanks to https://askubuntu.com/a/731237
-        $command .= "|& tee -a $tmp_output_file";
+        $command .= " 2>&1 | tee -a $tmp_output_file";
     }
     else {
         // If not verbose, just save it to file.
