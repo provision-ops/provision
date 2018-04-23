@@ -37,14 +37,13 @@ class ShellCommand extends Command
         $messages = [];
         $process = new \Symfony\Component\Process\Process("bash");
         $process->setTty(TRUE);
+        $dir = $this->context->getWorkingDir();
 
         if ($this->context->type == 'site') {
 
-            // @TODO: Detect a docker hosted site and run docker exec instead.
-            $dir = $this->context->getProperty('root');
             $ps1 = Provision::APPLICATION_FUN_NAME . ' \[\e[33m\]'  . $this->context_name . '\[\e[m\] \w \[\e[36;40m\]\\$\[\e[m\] ';
+            $process->setWorkingDirectory($dir);
             $process->setCommandLine("cd $dir && PS1='$ps1' bash");
-            $messages[] = "Opening bash shell in " . $dir;
 
             //@TODO: Allow services to set environment variables for both shell command and virtualhost config.
             $env = $_SERVER;
@@ -67,9 +66,14 @@ class ShellCommand extends Command
 
             $process->setEnv($env);
         }
-        else {
-           $messages[] = "Opening bash shell in " . getcwd() . ' ( Site ' . $this->context_name . ')';
+
+        if (isset($this->context->dockerCompose) && $this->context->hasService('http')) {
+            $process->setWorkingDirectory($this->context->service('http')->provider->getWorkingDir());
+            $process->setCommandLine("docker-compose exec http bash");
         }
+
+        $messages[] = "Opening bash shell in " . $dir;
+        $messages[] = "Running the command: " . $process->getCommandLine();
 
         $messages[] = 'The commands composer, drupal, drush and more are available.';
         $messages[] = 'Type "exit" to leave.';
