@@ -115,12 +115,18 @@ YML;
           $env_file_path = $this->server->getProperty('server_config_path') . '/.env';
           $env_custom_path = $this->server->getProperty('server_config_path') . '/.env-custom';
           $env_custom = file_exists($env_custom_path)? '# LOADED FROM .env-custom: ' . PHP_EOL . file_get_contents($env_custom_path): '';
+
+          $provision_user_uid = $this->server->getProvision()->getConfig()->get('script_uid');
+          $provision_web_uid = $this->server->getProvision()->getConfig()->get('web_user_uid');
+
           $env_file_contents = <<<ENV
 # Provision-generated file. Do not edit.
 # Add a file .env-custom and it will be included here on `provision-verify`
 # For available docker-compose env vars, see https://docs.docker.com/compose/reference/envvars/
 COMPOSE_PATH_SEPARATOR=:
 COMPOSE_FILE=$dc_files_path
+PROVISION_USER_UID=$provision_user_uid
+PROVISION_WEB_UID=$provision_web_uid
 $env_custom
 ENV;
           $this->server->fs->dumpFile($env_file_path, $env_file_contents);
