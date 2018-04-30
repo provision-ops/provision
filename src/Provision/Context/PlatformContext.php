@@ -304,7 +304,12 @@ class PlatformContext extends ServiceSubscriber implements ConfigurationInterfac
         $steps['platform.found'] = Provision::newStep()
             ->start('Checking root path for files...')
             ->execute(function () {
-                return $this->fs->exists($this->getProperty('root'))? 0: 1;
+                if ($this->fs->exists($this->getProperty('root')) ) {
+                    return 0;
+                }
+                else {
+                    throw new \Exception('The path specified as "root" does not exist. Please put your code in the folder or change the "root" property in the context: ' . $this->getProperty('root'));
+                }
             });
 
         return $steps;
