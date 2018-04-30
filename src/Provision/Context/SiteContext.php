@@ -201,7 +201,7 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
                     $this->fs->chgrp($dir, $user);
 
                     // Copy Drupal's default settings.php file into place.
-                    if (!file_exists("$site_path/settings.php")) {
+                    if (!file_exists("$docroot/sites/default/default.settings.php")) {
                         $this->fs->copy("$docroot/sites/default/default.settings.php", "$site_path/settings.php");
                     }
 
