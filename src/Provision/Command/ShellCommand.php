@@ -4,6 +4,7 @@ namespace Aegir\Provision\Command;
 
 use Aegir\Provision\Command;
 use Aegir\Provision\Provision;
+use Aegir\Provision\Service\DockerServiceInterface;
 use Psy\Shell;
 use Psy\Configuration;
 use Symfony\Component\Console\Input\InputInterface;
@@ -67,7 +68,7 @@ class ShellCommand extends Command
             $process->setEnv($env);
         }
 
-        if (isset($this->context->dockerCompose) && $this->context->hasService('http')) {
+        if ($this->context->hasService('http') && $this->context->getService('http') instanceof DockerServiceInterface) {
             $process->setWorkingDirectory($this->context->service('http')->provider->getWorkingDir());
             $process->setCommandLine("docker-compose exec http bash");
         }
