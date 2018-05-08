@@ -122,10 +122,16 @@ class Context implements BuilderAwareInterface
         // If any assigned services implement DockerServiceInterface, or there
         // is a docker-compose.yml file in the server_config_path, load our
         // ServerContextDockerCompose class.
-        foreach ($this->services as $service) {
-            if ($service instanceof DockerServiceInterface || file_exists($this->getProperty('server_config_path') . '/docker-compose.yml')) {
-                $this->dockerCompose = new ServerContextDockerCompose($service->provider);
-                break;
+        if (empty($this->getServices()) && $this->type == 'server' && file_exists($this->getProperty('server_config_path') . '/docker-compose.yml')) {
+            $provision->getLogger()->debug('Found docker-compose.yml file in server config path ' . $this->getProperty('server_config_path') . ' for context ' . $this->getProperty('name'));
+            $this->dockerCompose = new ServerContextDockerCompose($this);
+        }
+        else {
+            foreach ($this->services as $service) {
+                if ($service instanceof DockerServiceInterface) {
+                    $this->dockerCompose = new ServerContextDockerCompose($service->provider);
+                    break;
+                }
             }
         }
     }
@@ -659,6 +665,8 @@ class Context implements BuilderAwareInterface
 
         $pre_tasks = $this->preVerify();
         $pre_tasks += $this->verify();
+        $friendlyName = '';
+        $type = '';
         foreach ($pre_tasks as $pre_task_title => $pre_task) {
             $collection->getConfig()->set($pre_task_title, $pre_task);
             $this->addStepToCollection($collection, $pre_task_title, $pre_task);
@@ -765,9 +773,11 @@ class Context implements BuilderAwareInterface
     function preVerify() {
 
         $steps = [];
-
+        $this->getProvision()->getLogger()->debug('running preVerify');
         // If dockerCompose engine is available, add those steps.
         if ($this->dockerCompose) {
+            $this->getProvision()->getLogger()->debug('running dockerCompose->preVerify');
+
             $steps += $this->dockerCompose->preVerify();
         }
 
