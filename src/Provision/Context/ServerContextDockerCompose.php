@@ -35,8 +35,11 @@ class ServerContextDockerCompose  {
     public function preVerify() {
         $steps = [];
         $filename = $this->server->getProperty('server_config_path') . DIRECTORY_SEPARATOR . 'docker-compose.yml';
+        $compose_services = [];
 
-      // Write docker-compose.yml file.
+      // Write docker-compose.yml file, only if there are services
+      if (!empty($this->server->getServices())) {
+
       $steps['docker.compose.write'] = Provision::newStep()
         ->start('Generating docker-compose.yml file...')
         ->success('Generating docker-compose.yml file... Saved to ' . $filename)
@@ -134,6 +137,7 @@ ENV;
           $this->server->getProvision()->getTasks()->taskLog($debug_message, LogLevel::INFO)->run()->getExitCode();
         });
 
+      }
         return $steps;
     }
 
