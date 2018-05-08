@@ -215,7 +215,7 @@ ENV;
         }
         // For SELinux-enabled systems, use 'v'.  See https://docs.docker.com/storage/bind-mounts/#configure-the-selinux-label
         elseif (exec('sestatus | grep status | grep enabled', $output, $exit) && $exit == 0) {
-            $default_flag = 'zeeee';
+            $default_flag = 'z';
         }
         else {
             $default_flag = '';
