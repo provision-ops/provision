@@ -119,10 +119,11 @@ class Context implements BuilderAwareInterface
 
         $this->fs = new Filesystem();
 
-        // If any assigned services implement DockerServiceInterface, load our
+        // If any assigned services implement DockerServiceInterface, or there
+        // is a docker-compose.yml file in the server_config_path, load our
         // ServerContextDockerCompose class.
         foreach ($this->services as $service) {
-            if ($service instanceof DockerServiceInterface) {
+            if ($service instanceof DockerServiceInterface || file_exists($this->getProperty('server_config_path') . '/docker-compose.yml')) {
                 $this->dockerCompose = new ServerContextDockerCompose($service->provider);
                 break;
             }
