@@ -229,6 +229,10 @@ class Service implements BuilderAwareInterface
                 $success = FALSE;
             }
         }
+        if($context->type != 'server'){
+          $context = $context->getSubscription('http')->service->provider;
+        }
+        $success = $success && $context->sync();
         return $success;
     }
     

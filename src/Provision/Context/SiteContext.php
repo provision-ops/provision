@@ -216,7 +216,7 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
                         // @TODO: This is only true for Drupal version 7.50 and up. See Provision/Config/Drupal/Settings.php
                             // We are treading more and more into the Drupal-only world, so I'm leaving this hard coded to TRUE until we develop something else.
                     $database_settings = <<<PHP
-                        
+
 // PROVISION SETTINGS
 \$databases['default']['default'] = array(
     'driver' => \$_SERVER['db_type'],
@@ -260,6 +260,14 @@ PHP;
 //
 //        provision_drupal_push_site(drush_get_option('override_slave_authority', FALSE));
 //
+                  $steps['site.sync'] = Provision::newStep()
+                  ->start("Running site sync ...")
+                  ->execute(function (){
+                    if($this->sync()){
+                      return 0;
+                    }
+                    return 1;
+                  });
         return $steps;
     }
     
@@ -314,5 +322,8 @@ PHP;
      */
     public static function randomBytesBase64($count = 32) {
         return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode(static::randomBytes($count)));
+    }
+    public function sync($path = NULL, $additional_options = array()) {
+      return $this->getSubscription('http')->service->provider->sync($this->getWorkingDir(), $additional_options);
     }
 }

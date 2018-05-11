@@ -996,28 +996,19 @@ class Context implements BuilderAwareInterface
       $this->getProperty('root')
     ;
 
-    if ($this->getProvision()->getOutput()->isVerbose()) {
-      $this->getProvision()->io()->commandBlock($command, $effective_wd);
-      $this->getProvision()->io()->customLite("Writing output to <comment>$tmp_output_file</comment>", ProvisionStyle::ICON_FILE, 'comment');
-
-        // If verbose, Use tee so we see it and it saves to file.
-        // Thanks to https://askubuntu.com/a/731237
-        // Uses "2>&1 |" so it works with older bash shells.
-        $command = "$command 2>&1 | tee -a $tmp_output_file; exit \${PIPESTATUS[0]}
-";
-    }
-    else {
-        // If not verbose, just save it to file.
-        $command .= "> $tmp_output_file 2>&1";
-    }
-
     // Output and Errors to file.
-    $process = $this->process_exec($command, $effective_wd);
+    $process = $this->process_exec($command, $effective_wd, $tmp_output_file);
     $exit_code = $process->getExitCode();
+    
 //    print 'EXIT CODE! ' . $exit_code; die;
     $exit = $process->getExitCode();
     $stdout = file_get_contents($tmp_output_file);
-
+    
+    $this->getProvision()->getLogger()->debug('Shell exec command: ' . print_r($command, 1));
+    $this->getProvision()->getLogger()->debug('Shell exec dir: ' . print_r($effective_wd, 1));
+    $this->getProvision()->getLogger()->debug('Shell exec exit code: ' . print_r($exit, 1));
+    $this->getProvision()->getLogger()->debug('Shell exec output: ' . print_r($stdout, 1));
+    
     if ($exit != ResultData::EXITCODE_OK) {
       throw new \Exception($stdout);
     }
@@ -1030,14 +1021,39 @@ class Context implements BuilderAwareInterface
    * @param null $dir
    * @param string $return
    */
-  public function process_exec($command, $dir = NULL) {
+  public function process_exec($command, $dir = NULL, $output_file = NULL) {
+    
+    if(!$this->isLocalHost()){
+      $ssh_command = 'ssh -o PasswordAuthentication=no ' . $this->getProperty('script_user') . '@' . $this->getProperty('remote_host');
+      if($dir){
+        $command = 'cd ' . $dir . ' && ' . $command;
+      }
+      $command = $ssh_command . ' "' . $command . '"';
+    }
 
+    if($output_file){
+      if ($this->getProvision()->getOutput()->isVerbose()) {
+        $this->getProvision()->io()->commandBlock($command, $dir);
+        $this->getProvision()->io()->customLite("Writing output to <comment>$output_file</comment>", ProvisionStyle::ICON_FILE, 'comment');
+        
+        // If verbose, Use tee so we see it and it saves to file.
+        // Thanks to https://askubuntu.com/a/731237
+        // Uses "2>&1 |" so it works with older bash shells.
+        $command = "$command 2>&1 | tee -a $output_file";
+      }
+      else {
+        // If not verbose, just save it to file.
+        $command .= " > $output_file 2>&1";
+      }
+    }
+    
     $process = new Process($command);
     $process->setTimeout(null);
     $process->setTty(true);
 
     $env = $_SERVER;
 
+    $this->getProvision()->getLogger()->debug('Command: ' . print_r($command, 1));
     $this->getProvision()->getLogger()->debug('Environment: ' . print_r($env, 1));
 
     $env['PROVISION_CONTEXT'] = $this->name;
@@ -1090,5 +1106,136 @@ class Context implements BuilderAwareInterface
         }
 
         return $classes;
+    }
+    
+    public function isLocalHost(){
+      if($this->hasProperty('remote_host')){
+        $host = $this->getProperty('remote_host');
+        
+        $host = strtolower($host);
+        // In order for this to work right, you must use 'localhost' or '127.0.0.1'
+        // or the machine returned by 'uname -n' for your 'remote-host' entry in
+        // your site alias.  Note that sometimes 'uname -n' does not return the
+        // correct value.  To fix it, put the correct hostname in /etc/hostname
+        // and then run 'hostname -F /etc/hostname'.
+        return ($host == 'localhost') ||
+        ($host == '127.0.0.1') ||
+        (gethostbyname($host) == '127.0.0.1') ||
+        (gethostbyname($host) == '127.0.1.1') || // common setting on
+        // ubuntu and friends
+        ($host == strtolower(php_uname('n'))) ||
+        ($host == static::provisionFqdn());
+      }
+      
+      return true;
+    }
+    
+    public static function provisionFqdn($host = NULL) {
+      if (is_null($host)) {
+        $host = php_uname('n');
+      }
+      return strtolower(gethostbyaddr(gethostbyname($host)));
+    }
+    
+    public function sync($path = NULL, $additional_options = array()) {
+      if(!$this->isLocalHost()){
+        if (is_null($path)) {
+          $path = $this->getWorkingDir();
+        }
+        if ($this->fs->exists($path)) {
+          $default_options = array(
+            'relative' => TRUE,
+            'keep-dirlinks' => TRUE,
+            'omit-dir-times' => TRUE,
+          );
+          $options = array_merge($default_options,$additional_options);
+          $parameters[] = $this->rsyncOptions($options);
+          $parameters[] = $path;
+          $parameters[] = $this->getProperty('script_user') . '@' . $this->getProperty('remote_host') . ':/';
+          
+          $exec = "rsync -e 'ssh -o PasswordAuthentication=no' " . implode(' ', array_filter($parameters)) . ' 2>&1';
+          
+          $process = new \Symfony\Component\Process\Process($exec);
+          $process->run();
+          
+          $this->getProvision()->getLogger()->debug('Sync command: ' . print_r($exec, 1));
+          $this->getProvision()->getLogger()->debug('Sync command output: ' . print_r($process->getOutput(), 1));
+          $this->getProvision()->getLogger()->debug('Sync command exitcode: ' . print_r($process->getExitCode(), 1));
+          
+          return $process->getExitCode() == ResultData::EXITCODE_OK;
+        }
+        else { // File does not exist, remove it.
+          return $this->shell_exec('rm -rf ' . escapeshellarg($path));
+        }
+      }
+      return 0;
+    }
+    public function fetch($path, $additional_options = array()) {
+      if(!$this->isLocalHost()){
+        if (is_null($path)) {
+          return;
+        }
+        if ($this->fs->exists($path)) {
+          $default_options = array(
+            'omit-dir-times' => TRUE,
+          );
+          $options = array_merge($default_options,$additional_options);
+          $parameters[] = $this->rsyncOptions($options);
+          $parameters[] = $this->getProperty('script_user') . '@' . $this->getProperty('remote_host') . ':' . $path ;
+          $parameters[] = $path;
+          
+          $exec = "rsync -e 'ssh -o PasswordAuthentication=no' " . implode(' ', array_filter($parameters)) . ' 2>&1';
+          
+          $process = new \Symfony\Component\Process\Process($exec);
+          $process->run();
+          
+          $this->getProvision()->getLogger()->debug('Sync command: ' . print_r($exec, 1));
+          $this->getProvision()->getLogger()->debug('Sync command output: ' . print_r($process->getOutput(), 1));
+          $this->getProvision()->getLogger()->debug('Sync command exitcode: ' . print_r($process->getExitCode(), 1));
+          
+          return $process->getExitCode() == ResultData::EXITCODE_OK;
+        }
+        else { // File does not exist, remove it.
+          return $this->shell_exec('rm -rf ' . escapeshellarg($path));
+        }
+      }
+    }
+    
+    public function rsyncOptions($options)
+    {
+      $verbose = $paths = $op =  '';
+      $options += [
+        'mode' => 'akz'
+      ];
+      // Process --include-paths and --exclude-paths options the same way
+      foreach (['include', 'exclude'] as $include_exclude) {
+        // Get the option --include-paths or --exclude-paths and explode to an array of paths
+        // that we will translate into an --include or --exclude option to pass to rsync
+        $inc_ex_path = explode(PATH_SEPARATOR, @$options[$include_exclude . '-paths']);
+        foreach ($inc_ex_path as $one_path_to_inc_ex) {
+          if (!empty($one_path_to_inc_ex)) {
+            $paths .= ' --' . $include_exclude . '="' . $one_path_to_inc_ex . '"';
+          }
+        }
+      }
+      
+      $mode = '-'. $options['mode'];
+      if ($this->getProvision()->getOutput()->isVerbose()) {
+        $mode .= 'v';
+        $verbose = ' --stats --progress';
+      }
+      $options_to_exclude = array('mode','ssh-options');
+      foreach ($options as $test_option => $value) {
+        if ((isset($test_option)) && !in_array($test_option, $options_to_exclude) && (isset($value)  && !is_array($value))) {
+          if (($value === TRUE) || (!isset($value))) {
+            $op .= " --$test_option";
+          }
+          else {
+            $op .= " --$test_option=" . escapeshellarg($value);
+          }
+        }
+      }
+      
+      return implode(' ', array_filter([$mode, $verbose, $op, $paths]));
     }
 }
