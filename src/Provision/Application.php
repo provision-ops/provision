@@ -3,6 +3,7 @@
 namespace Aegir\Provision;
 
 use Aegir\Provision\Command\CdCommand;
+use Aegir\Provision\Command\EditCommand;
 use Aegir\Provision\Command\SaveCommand;
 use Aegir\Provision\Command\ServicesCommand;
 use Aegir\Provision\Command\SetupCommand;
@@ -148,6 +149,7 @@ class Application extends BaseApplication
         $commands[] = new HelpCommand();
         $commands[] = new ListCommand();
         $commands[] = new SaveCommand();
+        $commands[] = new EditCommand();
         $commands[] = new SetupCommand();
         $commands[] = new ServicesCommand();
         $commands[] = new ShellCommand();
