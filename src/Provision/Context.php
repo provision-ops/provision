@@ -1026,6 +1026,8 @@ class Context implements BuilderAwareInterface
   }
 
   /**
+   * Run a command in this context's working directory and log the output in real time.
+   *
    * @param $command
    * @param null $dir
    * @param string $return
