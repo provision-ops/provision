@@ -15,6 +15,10 @@ use Aegir\Provision\Context\ServerContextDockerCompose;
 use Aegir\Provision\Robo\ProvisionCollectionBuilder;
 use Aegir\Provision\Robo\ProvisionExecutor;
 use Aegir\Provision\Robo\ProvisionTasks;
+
+use Monolog\Logger;
+use Psr\Log\LoggerInterface;
+
 use Drupal\Console\Core\Style\DrupalStyle;
 use League\Container\Container;
 use League\Container\ContainerAwareInterface;
@@ -119,7 +123,7 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
         OutputInterface $output = NULL
     ) {
     
-        $logger = new ConsoleLogger($output);
+        $logger = new Logger('provision');
         $this->setLogger($logger);
         
         $this
