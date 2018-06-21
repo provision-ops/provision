@@ -995,21 +995,21 @@ class Context implements BuilderAwareInterface
       $this->type == 'server'? $this->getProperty('server_config_path'):
       $this->getProperty('root')
     ;
-
-    if ($this->getProvision()->getOutput()->isVerbose()) {
-      $this->getProvision()->io()->commandBlock($command, $effective_wd);
-      $this->getProvision()->io()->customLite("Writing output to <comment>$tmp_output_file</comment>", ProvisionStyle::ICON_FILE, 'comment');
-
-        // If verbose, Use tee so we see it and it saves to file.
-        // Thanks to https://askubuntu.com/a/731237
-        // Uses "2>&1 |" so it works with older bash shells.
-        $command = "$command 2>&1 | tee -a $tmp_output_file; exit \${PIPESTATUS[0]}
-";
-    }
-    else {
-        // If not verbose, just save it to file.
-        $command .= "> $tmp_output_file 2>&1";
-    }
+//
+//    if ($this->getProvision()->getOutput()->isVerbose()) {
+//      $this->getProvision()->io()->commandBlock($command, $effective_wd);
+//      $this->getProvision()->io()->customLite("Writing output to <comment>$tmp_output_file</comment>", ProvisionStyle::ICON_FILE, 'comment');
+//
+//        // If verbose, Use tee so we see it and it saves to file.
+//        // Thanks to https://askubuntu.com/a/731237
+//        // Uses "2>&1 |" so it works with older bash shells.
+//        $command = "$command 2>&1 | tee -a $tmp_output_file; exit \${PIPESTATUS[0]}
+//";
+//    }
+//    else {
+//        // If not verbose, just save it to file.
+//        $command .= "> $tmp_output_file 2>&1";
+//    }
 
     // Output and Errors to file.
     $process = $this->process_exec($command, $effective_wd);
@@ -1036,7 +1036,7 @@ class Context implements BuilderAwareInterface
 
     $process = new Process($command);
     $process->setTimeout(null);
-    $process->setTty(true);
+//    $process->setTty(true);
 
     $env = $_SERVER;
 
@@ -1055,12 +1055,15 @@ class Context implements BuilderAwareInterface
       $process->setWorkingDirectory($dir);
     }
 
-    $io = $this->getProvision()->io();
-    $verbose = (bool) $this->getProvision()->getOutput()->isVerbose();
-    $process->run(function ($type, $buffer) use ($verbose, $io) {
-        if ($verbose) {
-            $io->writeln(trim($buffer));
-        }
+    $this->getProvision()->getLogger()->command('Running {command} ...', [
+      'command' => $process->getCommandLine(),
+    ]);
+    $process->run(function ($type, $buffer) use ($command) {
+        $this->getProvision()->getLogger()->console('{buffer}', [
+            'command' => $command,
+            'buffer' => trim($buffer),
+            'time' => time(),
+        ]);
     });
     return $process;
   }
