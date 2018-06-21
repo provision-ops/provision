@@ -92,6 +92,33 @@ class ProvisionStyle extends DrupalStyle {
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function write($messages, $newline = false, $type = self::OUTPUT_NORMAL)
+    {
+        // Pipe to monolog
+        if (!is_array($messages)) {
+            $messages = [$messages];
+        }
+        Provision::getProvision()->getLogger()->console(implode("\n", $messages));
+        parent::write($messages, $newline, $type);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function writeln($messages, $type = self::OUTPUT_NORMAL)
+    {
+        // Pipe to monolog
+        if (!is_array($messages)) {
+            $messages = [$messages];
+        }
+        Provision::getProvision()->getLogger()->console(implode("\n", $messages));
+    }
+
+
+
+    /**
      * Use to display a directory $ command.
      *
      * @param $message
