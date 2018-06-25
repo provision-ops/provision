@@ -23,6 +23,7 @@ class Provision_Context_platform extends Provision_Context {
   }
 
   function init_platform() {
+    $this->setProperty('root');
     $this->setProperty('publish_path');
     $this->setProperty('makefile', '');
     $this->setProperty('make_working_copy', FALSE);
@@ -34,8 +35,10 @@ class Provision_Context_platform extends Provision_Context {
    * option.
    */
   function save_platform() {
-    $this->setProperty('root', $this->publish_path);
-    $this->setProperty('publish_path', NULL);
-    unset($this->publish_path);
+    if (!empty($this->publish_path)) {
+      $this->setProperty('root', $this->publish_path);
+      $this->setProperty('publish_path', NULL);
+      unset($this->publish_path);
+    }
   }
 }
