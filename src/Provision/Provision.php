@@ -295,7 +295,7 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
      * Gets Logger object.
      * Returns the currently active Logger instance.
      *
-     * @return \Psr\Log\LoggerInterface
+     * @return \Aegir\Provision\Console\Logger
      */
     public function getLogger()
     {
