@@ -43,8 +43,8 @@ class SaveCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('save')
-            ->setAliases(['add'])
+            ->setName('context:save')
+            ->setAliases(['add', 'save'])
             ->setDescription('Create or update a site, platform, or server.')
             ->setHelp(
                 'Use this command to interactively setup a new site, platform or server (known as "contexts"). Metadata is saved to .yml files in the "config_path" folder. Once you have create a context, use the `provision status` command to view the list of added contexts.'

@@ -1026,6 +1026,8 @@ class Context implements BuilderAwareInterface
   }
 
   /**
+   * Run a command in this context's working directory and log the output in real time.
+   *
    * @param $command
    * @param null $dir
    * @param string $return
@@ -1053,7 +1055,6 @@ class Context implements BuilderAwareInterface
       $process->setWorkingDirectory($dir);
     }
 
-//    print $this->getProvision()->getOutput()->isVerbose(); die; // 'verbose!@!!': 'not verbose';
     $io = $this->getProvision()->io();
     $verbose = (bool) $this->getProvision()->getOutput()->isVerbose();
     $process->run(function ($type, $buffer) use ($verbose, $io) {
