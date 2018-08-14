@@ -427,9 +427,24 @@ function _scrub_object($input) {
  *
  * @see drush_invoke_process()
  */
-function provision_backend_invoke($target, $command, $arguments = array(), $data = array(), $mode = 'GET') {
-  $context = '@' . ltrim($target, '@');
-  return drush_invoke_process($context, $command, $arguments, $data, array('method' => $mode, 'integrate' => TRUE, 'dispatch-using-alias' => TRUE));
+function provision_backend_invoke($target, $drush_command, $arguments = array(), $task_options = array(), $mode = 'GET') {
+
+  // Build the command
+  $command = $env = [];
+  $command[] = $drush_bin = 'drush'; // @TODO: Point at the exact drush bin somewhere.
+  $command[] = $context  = '@' . ltrim($target, '@');
+  $command[] = $drush_command;
+  $command = array_merge($command, $arguments);
+  $command[] = '--strict=0';
+  foreach ($task_options as $name => $value) {
+    $value = escapeshellarg($value);
+    $command[] = "--$name=$value";
+  }
+
+  return provision_process(implode(' ', $command), d($context)->site_path, 'Drush',
+    $env, t('Command failed.'));
+
+//  return drush_invoke_process($context, $command, $arguments, $data, array('method' => $mode, 'integrate' => TRUE, 'dispatch-using-alias' => TRUE));
 }
 
 /**
