@@ -23,6 +23,7 @@ print '<?php' ?>
  */
 if (isset($_SERVER['SITE_SUBDIR']) && isset($_SERVER['RAW_HOST'])) {
   $base_url = 'http://' . $_SERVER['RAW_HOST'] . '/' . $_SERVER['SITE_SUBDIR'];
+  ini_set('session.cookie_path', '/' . $_SERVER['SITE_SUBDIR'] . '/');
 }
 <?php endif; ?>
 
