@@ -1,3 +1,10 @@
+aegir3-provision (3.173) testing; urgency=medium
+
+  * Update to Hostmaster 7.x-3.173 & Drupal 7.63.
+
+ -- Jon Pugh <jon@thinkdrop.net>  Fri, 18 Jan 2019 14:37:21 -0500
+
+
 aegir3-provision (3.172) testing; urgency=medium
 
   * Fix regression in legacy hosting_ssl: the logic for determining a certificate wasn't good, in the legacy module. #3020747
