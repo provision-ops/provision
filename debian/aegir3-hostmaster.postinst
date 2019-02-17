@@ -71,10 +71,10 @@ case "$1" in
         chown aegir:aegir "$AEGIRHOME" "$AEGIRHOME/config" "$AEGIRHOME/config/$WEBSERVER.conf"
 
         # flush the drush cache to find new commands
-        su -s /bin/sh aegir -c '$DRUSH_PATH cache-clear drush'
+        su -s /bin/sh aegir -c "$DRUSH_PATH cache-clear drush"
 
-        site_uri=`su -s /bin/sh aegir -c '$DRUSH_PATH @hostmaster status --fields="uri" --field-labels=0 2>/dev/null | tr "\n" " " | sed -e "s/^[[:space:]]*//g" -e "s/[[:space:]]*\$//g"'`
-        drupal_root=`su -s /bin/sh aegir -c '$DRUSH_PATH @hostmaster status --fields="root" --field-labels=0 2>/dev/null | tr "\n" " " | sed -e "s/^[[:space:]]*//g" -e "s/[[:space:]]*\$//g"'`
+        site_uri=`su -s /bin/sh aegir -c "$DRUSH_PATH @hostmaster status --fields='uri' --field-labels=0 2>/dev/null | tr '\n' ' ' | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*\$//g'"`
+        drupal_root=`su -s /bin/sh aegir -c "$DRUSH_PATH @hostmaster status --fields='root' --field-labels=0 2>/dev/null | tr '\n' ' ' | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*\$//g'"`
 
         if [ -d "$drupal_root" ]; then
             # upgrade
@@ -98,7 +98,7 @@ case "$1" in
                 echo "it seems to be the same version as the one we're trying to install, not upgrading"
             else
                 echo "upgrading the frontend from $drupal_root to $NEW_PLATFORM"
-                if su -s /bin/sh aegir -c '$DRUSH_PATH @hostmaster pm-list --status=enabled --pipe' | grep -q hosting_queued; then
+                if su -s /bin/sh aegir -c "$DRUSH_PATH @hostmaster pm-list --status=enabled --pipe" | grep -q hosting_queued; then
                     service hosting-queued stop
                 fi
                 cd "$drupal_root"
@@ -186,11 +186,11 @@ case "$1" in
 }
 EOF
             # flush the drush cache to find new commands
-            su -s /bin/sh aegir -c '$DRUSH_PATH cache-clear drush'
+            su -s /bin/sh aegir -c "$DRUSH_PATH cache-clear drush"
 
             # on new installs, we default to having the daemon enabled
             echo 'Enabling hosting-queued daemon'
-            su -s /bin/sh aegir -c '$DRUSH_PATH @hostmaster pm-enable -y hosting_queued'
+            su -s /bin/sh aegir -c "$DRUSH_PATH @hostmaster pm-enable -y hosting_queued"
             service hosting-queued start
             if [ -f /bin/systemctl ]; then
               # There must be a better way, but we're trying to stay compatible with Debian Wheezy and Jessie.
