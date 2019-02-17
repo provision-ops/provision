@@ -25,7 +25,7 @@ EOF
 
 set -x
 echo "[CI] Pre-installing dependencies"
-sudo apt-get install --yes mariadb-server-10.1 php7.0-mysql php7.0-cli
+sudo apt-get install --yes mariadb-server php-mysql php-cli
 
 
 echo "[CI] Installing .deb files .. will fail on missing packages"
