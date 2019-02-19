@@ -88,6 +88,11 @@ test:debian-stretch-aegir3-apt:
   dependencies:
     - build:deb
 
+  only:
+    - 7.x-3.x
+    - /^7\.x-3\.\d+\.x/
+    - /-runalltests$/
+
   before_script:
     - apt-get update
     # Avoid ERROR: invoke-rc.d: policy-rc.d denied execution of start.
@@ -96,6 +101,22 @@ test:debian-stretch-aegir3-apt:
     - apt-get install --yes sudo curl
 
   script: "scripts/ci-aegir-dev-install-apt-debian9.sh"
+
+test:debian-buster-aegir3-apt:
+  stage: test
+  image: debian:buster
+  allow_failure: false
+  dependencies:
+    - build:deb
+
+  before_script:
+    - apt-get update
+    # Avoid ERROR: invoke-rc.d: policy-rc.d denied execution of start.
+    - echo "#!/bin/sh" > /usr/sbin/policy-rc.d
+    - echo "exit 0" >> /usr/sbin/policy-rc.d
+    - apt-get install --yes sudo curl
+
+  script: "scripts/ci-aegir-dev-install-apt-debian10.sh"
 
 test:ubuntu-xenial-aegir3-apt:
   stage: test
