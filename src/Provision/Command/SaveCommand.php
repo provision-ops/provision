@@ -144,9 +144,31 @@ class SaveCommand extends Command
 
             $this->newContext = TRUE;
 
-            // If context_type is still empty, throw an exception. Happens if using -n
+            // If context_type is not specified,..
             if (empty($context_type)) {
-                throw new \Exception('Option --context_type must be specified.');
+                // If user is interactive...
+                if ($input->isInteractive()){
+                    $contexts = $this->getProvision()->getAllContexts();
+
+                    // If there are no contexts at all, default to "server".
+                    if (count($contexts) == 0) {
+                        // @TODO: This is the onboarding moment for CLI users.
+                        $context_type = 'server';
+                        $this->io->note('No contexts exist. Creating server...');
+                    }
+
+                    // If there are other contexts, ask what type the user wants to create.
+                    else {
+                        $context_type = $this->io->choice('What do you want to create?', Context::getContextTypeOptions());
+                    }
+
+                    // Save option to $input.
+                    $input->setOption('context_type', $context_type);
+                }
+                else {
+                    // Not interactive: --context_type is required.
+                    throw new \Exception('Option --context_type must be specified.');
+                }
             }
             else {
                 $this->input->setOption('context_type', $context_type);
