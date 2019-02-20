@@ -148,13 +148,29 @@ class SaveCommand extends Command
             if (empty($context_type)) {
                 // If user is interactive...
                 if ($input->isInteractive()){
-                    $contexts = $this->getProvision()->getAllContexts();
+
+                    // If name is not set, ask for it.
+                    if (empty($this->context_name)) {
+                        while (empty($this->context_name)) {
+                            $this->context_name = $this->io->ask('Context Name:', '', function ($value) {
+                                if (empty($value)) {
+                                    $this->io->error('You must specify a context name.');
+                                }
+                                else {
+                                  return $value;
+                                }
+                            });
+                        }
+
+                        $this->input->setOption('context', $this->context_name);
+                    }
 
                     // If there are no contexts at all, default to "server".
+                    $contexts = $this->getProvision()->getAllContexts();
                     if (count($contexts) == 0) {
                         // @TODO: This is the onboarding moment for CLI users.
                         $context_type = 'server';
-                        $this->io->note('No contexts exist. Creating server...');
+                        $this->io->note('No contexts exist yet. First one must be a server.');
                     }
 
                     // If there are other contexts, ask what type the user wants to create.
@@ -172,8 +188,11 @@ class SaveCommand extends Command
             }
             else {
                 $this->input->setOption('context_type', $context_type);
+                if (empty($this->context_name)) {
+                    throw new \Exception('No context name set. You must use the --context option when running non-interactively.');
+                }
             }
-    
+
             // Handle invalid context_type.
             if (!class_exists(Context::getClassName($context_type))) {
                 $types = Context::getContextTypeOptions();
