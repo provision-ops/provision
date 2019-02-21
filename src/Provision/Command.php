@@ -85,11 +85,11 @@ abstract class Command extends BaseCommand
 
                 // If no context with the specified name is found:
                 // if this is "save" command and option for --delete is used, throw exception: context must exist to delete.
-                if ($this->getName() == 'save' && $input->getOption('delete')) {
+                if ($this->getName() == 'context:save' && $input->getOption('delete')) {
                     throw new \Exception("No context named {$this->context_name}. Unable to delete.");
                 }
                 // If this is any other command, context is required.
-                elseif ($this->getName() != 'save') {
+                elseif ($this->getName() != 'context:save') {
                     throw new InvalidArgumentException($e->getMessage());
                 }
             }
