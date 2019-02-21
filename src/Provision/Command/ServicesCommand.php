@@ -220,7 +220,7 @@ class ServicesCommand extends Command
             }
 
             if ($this->context->hasService($service)) {
-                $this->getProvision()->io()->helpBlock("Editing service {$service} provded by server '{$this->context->name}'...", ProvisionStyle::ICON_EDIT);
+                $this->getProvision()->io()->helpBlock("Editing service {$service} provided by server '{$this->context->name}'...", ProvisionStyle::ICON_EDIT);
             }
 
             // Then ask for all options.
