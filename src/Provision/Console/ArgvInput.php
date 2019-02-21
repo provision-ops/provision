@@ -30,7 +30,9 @@ class ArgvInput extends ArgvInputBase {
         })) {
             $context_option = array_pop($argv_filtered);
             $context_name = substr($context_option, strlen('--context='));
-            $this->activeContextName = $context_name;
+
+            // Allow --context=@server_master.
+            $this->activeContextName = ltrim($context_name, '@');
         }
         parent::__construct($argv, $definition);
     }
