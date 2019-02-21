@@ -1036,7 +1036,9 @@ class Context implements BuilderAwareInterface
 
     $process = new Process($command);
     $process->setTimeout(null);
-    $process->setTty(true);
+
+    // @TODO: This must be commented out to work from Hosting Tasks drush command.
+//    $process->setTty(PHP_OS !== 'WINNT`' && is_writable('/dev/tty'));
 
     $env = $_SERVER;
 
