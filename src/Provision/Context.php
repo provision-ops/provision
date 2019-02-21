@@ -1038,7 +1038,12 @@ class Context implements BuilderAwareInterface
     $process->setTimeout(null);
 
     // @TODO: This must be commented out to work from Hosting Tasks drush command.
-//    $process->setTty(PHP_OS !== 'WINNT`' && is_writable('/dev/tty'));
+    // @TODO: Manual CLI and Hosting Tasks both need TTY to be false to work. Travis needs TTY to be TRUE to work!
+    //    $process->setTty(PHP_OS !== 'WINNT`' && is_writable('/dev/tty'));
+
+    if (!empty($_SERVER['TRAVIS'])) {
+      $process->setTty(true);
+    }
 
     $env = $_SERVER;
 
