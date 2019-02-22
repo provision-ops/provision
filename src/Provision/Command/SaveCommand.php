@@ -341,9 +341,10 @@ class SaveCommand extends Command
                 // Convert all platform properties to $input options.
                 foreach ($platform->getProperties() as $name => $value) {
                     if ($name != 'name' && $name != 'type' && $this->input->hasOption($name)) {
-                        $this->getProvision()->getLogger()->notice("Setting option '{name}' from platform to '{value}'.", [
-                            'name' => $name,
+                      $this->getProvision()->getLogger()->info("Inheriting option from platform {platform}: {option}={value} ", [
+                            'option' => $name,
                             'value' => $value,
+                            'platform' => $platform->name,
                         ]);
 
                         // Detect empty values, and pass FALSE instead.
@@ -439,14 +440,30 @@ class SaveCommand extends Command
             // If option does not exist, ask for it.  option is FALSE if loaded from platform with empty property. Prevents console from asking for it if empty.
             if (!empty($this->input->getOption($name)) || $this->input->getOption($name) === FALSE) {
                 $properties[$name] = $this->input->getOption($name);
-                $this->io->comment("Using option {$name}={$properties[$name]}");
+                $this->getProvision()->getLogger()->info("Using command-line option {option}={value}", [
+                    'option' => $name,
+                    'value' => $properties[$name],
+                ]);
             }
             else {
 
                 // If --ask-defaults is not set and there is a default, use it and do not ask the user.
                 if ($property->hidden || !$property->forceAsk && !$this->input->getOption('ask-defaults') && !empty($property->default)) {
                     $properties[$name] = $property->default;
-                    $this->io->comment("Using default option {$name}={$properties[$name]}");
+
+                    // @TODO: Better "is this new?" method.
+                    if (!empty($this->context)) {
+                      $this->getProvision()->getLogger()->info("Using current value {option}={value}", [
+                        'option' => $name,
+                        'value' => $properties[$name],
+                      ]);
+                    }
+                    else {
+                      $this->getProvision()->getLogger()->info("Using default value {option}={value}", [
+                        'option' => $name,
+                        'value' => $properties[$name],
+                      ]);
+                    }
                 }
                 // If user has specifically asked to be asked with the --ask-defaults option, then ask for it.
                 else {

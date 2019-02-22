@@ -265,6 +265,7 @@ class ServicesCommand extends Command
             $this->context->config[$services_key][$service]['properties'] = $properties;
 
             $this->context->setProperty($services_key, $this->context->config[$services_key]);
+            $this->context->preSave();
             $this->context->save();
             $this->io->success('Service saved to Context!');
         }
@@ -299,7 +300,7 @@ class ServicesCommand extends Command
             // If option does not exist, ask for it.
             if ($this->input->hasOption($name) && !empty($this->input->getOption($name))) {
                 $properties[$name] = $this->input->getOption($name);
-                $this->io->comment("Using option {$name}={$properties[$name]}");
+                $this->io->comment("Using command-line option {$name}={$properties[$name]}");
             }
             else {
                 $properties[$name] = $this->io->ask("{$name} ({$property->description})", $property->default, $property->validate);
