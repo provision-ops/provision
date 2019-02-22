@@ -69,22 +69,22 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
     /**
      * @var \Robo\Runner
      */
-    private $runner;
+    protected $runner;
     
     /**
      * @var ProvisionTasks
      */
-    private $tasks;
+    protected $tasks;
     
     /**
      * @var string[]
      */
-    private $commands = [];
+    protected $commands = [];
     
     /**
      * @var \Aegir\Provision\Application
      */
-    private $application;
+    protected $application;
     
     /**
      * @var \Aegir\Provision\Context[]
@@ -99,7 +99,7 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
     /**
      * @var array[]
      */
-    private $context_files = [];
+    protected $context_files = [];
     
     /**
      * @var ConsoleOutput
@@ -168,7 +168,7 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
     /**
      * Lookup all context yml files and load into Context classes.
      */
-    private function loadAllContexts()
+    protected function loadAllContexts()
     {
         try {
             $folder = $this->getConfig()->get('contexts_path');
