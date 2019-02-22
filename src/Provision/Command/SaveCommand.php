@@ -81,6 +81,14 @@ class SaveCommand extends Command
         );
 
         $inputDefinition[] = new InputOption(
+          'property',
+          null,
+          InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY,
+          'Add a property to the context in the format "name:value". Multiple --property options are allowed.',
+          []
+        );
+
+        $inputDefinition[] = new InputOption(
             'ask-defaults',
             'a',
             InputOption::VALUE_NONE,
