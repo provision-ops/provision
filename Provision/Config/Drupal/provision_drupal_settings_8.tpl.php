@@ -163,6 +163,7 @@ if (isset($_SERVER['db_name'])) {
   /**
    * Load services definition file.
    */
+  $settings['container_yamls'][] = __DIR__ . '/aegir.services.yml';
   $settings['container_yamls'][] = __DIR__ . '/services.yml';
 
   /**
