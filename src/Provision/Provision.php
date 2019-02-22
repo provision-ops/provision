@@ -419,11 +419,13 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
      * @throws \Exception
      */
     public function getContext($name) {
+        $name = ltrim($name, '@');
+
         // Check if $name is empty.
         if (empty($name)) {
             throw new \Exception('Context name must not be empty.');
         }
-        
+
         // If context exists but hasn't been loaded, load it.
         if (empty($this->contexts[$name]) && !empty($this->context_files[$name])) {
             $this->loadContext($name);
