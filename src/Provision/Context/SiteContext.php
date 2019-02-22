@@ -71,6 +71,43 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
         $options['uri'] = Provision::newProperty()
             ->description('site: example.com URI, no http:// or trailing /')
         ;
+        $options['aliases'] = Provision::newProperty()
+            ->description('site: comma-separated URIs')
+            ->defaultValue('')
+            ->required(FALSE)
+        ;
+        $options['redirection'] = Provision::newProperty()
+            ->description('site: boolean for whether domain aliases should redirect to the primary domain; default false')
+            ->defaultValue(FALSE)
+            ->required(FALSE)
+        ;
+        $options['https_enabled'] = Provision::newProperty()
+            ->description('site: Enable HTTPS')
+            ->defaultValue(FALSE)
+            ->required(FALSE)
+        ;
+
+        // @TODO: Use this use case to develop a plugin system.
+        $options['http_basic_auth_username'] = Provision::newProperty()
+            ->description('site: Basic authentication username')
+            ->defaultValue('')
+            ->required(FALSE)
+        ;
+        $options['http_basic_auth_password'] = Provision::newProperty()
+            ->description('site: Basic authentication password')
+            ->defaultValue('')
+            ->required(FALSE)
+        ;
+        $options['http_basic_auth_message'] = Provision::newProperty()
+            ->description('site: Basic authentication message')
+            ->defaultValue('')
+            ->required(FALSE)
+        ;
+        $options['http_basic_auth_whitelist'] = Provision::newProperty()
+            ->description('site: Basic authentication grant list. Allows access from these IPs.')
+            ->defaultValue('')
+            ->required(FALSE)
+        ;
 
         $options['platform'] = Provision::newProperty()
             ->description('site: The platform this site is run on. (Optional)')
