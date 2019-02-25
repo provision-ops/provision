@@ -111,9 +111,6 @@ if (isset($_SERVER['db_name'])) {
 
 <?php endif; ?>
 
-  $profile = "<?php print $this->profile ?>";
-  $install_profile = "<?php print $this->profile ?>";
-
   /**
   * PHP settings:
   *
@@ -134,7 +131,6 @@ if (isset($_SERVER['db_name'])) {
   */
   umask(0002);
 
-  $settings['install_profile'] = '<?php print $this->profile ?>';
   $settings['file_public_path'] = 'sites/<?php print $this->uri ?>/files';
   $settings['file_private_path'] = 'sites/<?php print $this->uri ?>/private/files';
   $config['system.file']['path']['temporary'] = 'sites/<?php print $this->uri ?>/private/temp';
