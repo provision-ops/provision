@@ -252,9 +252,9 @@ publish:unstable-repo:
 #
 
 # Upgrade the latest stable Aegir to our unstable repo.
-upgradetest:debian-jessie-aegir3-apt-upgrade:
+upgradetest:debian-stretch-aegir3-apt-upgrade:
   stage: upgradetest
-  image: debian:jessie
+  image: debian:stretch
   dependencies:
     - publish:unstable-repo
 
@@ -271,7 +271,7 @@ upgradetest:debian-jessie-aegir3-apt-upgrade:
     - apt-get install --yes sudo curl cron
 
   script:
-    - "scripts/ci-aegir-stable-install-apt-debian8.sh"
+    - "scripts/ci-aegir-stable-install-apt-debian9.sh"
     # extra step to run the task queue.
     - sudo su aegir --login --command 'drush @hostmaster php-eval "echo hosting_task_count();"'
     - sudo su aegir --login --command 'drush @hostmaster hosting-tasks --force'
@@ -283,6 +283,6 @@ upgradetest:debian-jessie-aegir3-apt-upgrade:
     - sudo su aegir --login --command 'drush @hostmaster php-eval "echo hosting_task_count_running();"'
     # upgrade to the latest version from the unstable repo.
     - rm -v /etc/apt/sources.list.d/aegir-stable.list
-    - echo "deb http://debian.aegirproject.org unstable main" | sudo tee -a /etc/apt/sources.list.d/aegir-unstable.list
+    - echo "deb [signed-by=/usr/share/keyrings/aegir-archive-keyring.gpg] http://debian.aegirproject.org unstable main" | sudo tee -a /etc/apt/sources.list.d/aegir-unstable.list
     - sudo apt-get update
     - sudo apt-get --yes dist-upgrade

@@ -5,10 +5,10 @@
 #
 
 
-sudo apt-get install --yes curl
+sudo apt-get install --yes wget apt-transport-https
 
-echo "deb http://debian.aegirproject.org stable main" | sudo tee -a /etc/apt/sources.list.d/aegir-stable.list
-curl https://debian.aegirproject.org/key.asc | sudo apt-key add -
+sudo wget -O /usr/share/keyrings/aegir-archive-keyring.gpg https://debian.aegirproject.org/aegir-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/aegir-archive-keyring.gpg] https://debian.aegirproject.org stable main" | sudo tee -a /etc/apt/sources.list.d/aegir-stable.list
 sudo apt-get update
 echo "debconf debconf/frontend select Noninteractive" | sudo debconf-set-selections
 
@@ -29,5 +29,3 @@ postfix postfix/main_mailer_type select Local only
 EOF
 
 sudo DPKG_DEBUG=developer apt-get install --yes aegir3
-
-
