@@ -17,12 +17,11 @@ sudo apt-get install --yes mariadb-server
 sudo /usr/bin/mysql -e "GRANT ALL ON *.* TO 'aegir_root'@'localhost' IDENTIFIED BY 'PASSWORD' WITH GRANT OPTION"
 
 
-debconf-set-selections <<EOF
+sudo debconf-set-selections <<EOF
 aegir3-hostmaster aegir/email string  aegir@example.com
 aegir3-hostmaster aegir/site  string  aegir.example.com
 postfix postfix/main_mailer_type select Local only
 
 EOF
-
 
 sudo DPKG_DEBUG=developer apt-get install --yes aegir3
