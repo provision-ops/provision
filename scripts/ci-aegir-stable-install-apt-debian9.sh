@@ -5,7 +5,7 @@
 #
 
 
-sudo apt-get install --yes wget
+sudo apt-get install --yes wget apt-transport-https
 
 sudo wget -O /usr/share/keyrings/aegir-archive-keyring.gpg https://debian.aegirproject.org/aegir-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/aegir-archive-keyring.gpg] https://debian.aegirproject.org stable main" | sudo tee -a /etc/apt/sources.list.d/aegir-stable.list
