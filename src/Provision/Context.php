@@ -649,25 +649,43 @@ class Context implements BuilderAwareInterface
 //    }
 
     /**
-     * Verify this context.
+     * The Context::runSteps() method is to be used by Commands to simplify the collection of
+     * step arrays into a runnable collection of "Robo Tasks"
      *
-     * Running `provision verify CONTEXT` triggers this method.
+     * For example, VerifyCommand.php calls:
      *
-     * Collect all services for the context and run the verify() method on them.
+     *     $this->context->runSteps('verify');
+     *
+     * This method then looks for the Context::verify() and any
+     * Service::verify() methods, which must return an array of tasks.
+     *
+     * It also calls Context::preVerify() and Context::postVerify() methods.
      *
      * If this context is a Service Subscriber, the provider service will be verified first.
      *
      * @throws \Exception
      */
-    public function verifyCommand()
+    public function runSteps($steps_method)
     {
+        $preVerifyMethod = "pre" . ucfirst($steps_method);
+        $postVerifyMethod = "post" . ucfirst($steps_method);
+
+        if (!method_exists($this, $steps_method)) {
+            $class = get_class($this);
+            throw new \Exception("Method $steps_method does not exist in the class  {$class}");
+        }
+
         $collection = $this->getProvision()->getBuilder();
 
-        $pre_tasks = $this->preVerify();
-        $pre_tasks += $this->verify();
+        $tasks = array();
+        if (method_exists($this, $preVerifyMethod)) {
+            $tasks += $this->{$preVerifyMethod}();
+        }
+
+        $tasks += $this->{$steps_method}();
         $friendlyName = '';
         $type = '';
-        foreach ($pre_tasks as $pre_task_title => $pre_task) {
+        foreach ($tasks as $pre_task_title => $pre_task) {
             $collection->getConfig()->set($pre_task_title, $pre_task);
             $this->addStepToCollection($collection, $pre_task_title, $pre_task);
         }
@@ -680,7 +698,7 @@ class Context implements BuilderAwareInterface
 //            }, 'logging.' . $type);
 
             $service->setContext($this);
-            $service_steps = $service->verify();
+            $service_steps = $service->{$steps_method}();
             if (count($service_steps)) {
                 $steps['logging.' . $type] = function() use ($friendlyName, $type) {
                     $this->getProvision()->io()->section("Verify service: {$friendlyName}");
@@ -695,13 +713,13 @@ class Context implements BuilderAwareInterface
             $steps = [];
         }
         // Add postVerify() tasks to the collection.
-        $postTasks = $this->postVerify();
+        $postTasks = $this->{$postVerifyMethod}();
         if (count($postTasks)) {
             $this->addStepToCollection($collection, 'logging.post', function() use ($friendlyName, $type) {
                 $this->getProvision()->io()->section("Verify server: Finalize");
             });
 
-            $this->prepareSteps($collection, $this->postVerify());
+            $this->prepareSteps($collection, $this->{$postVerifyMethod}());
         }
         $result = $collection->run();
 

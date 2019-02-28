@@ -78,7 +78,7 @@ class InstallCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         if (!$input->getOption('skip-verify')) {
-            $this->context->verifyCommand();
+            $this->context->runSteps('verify');
         }
 
         // @TODO: Allow dynamic options to be passed to the install command.
