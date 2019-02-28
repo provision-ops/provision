@@ -192,7 +192,8 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
 //                ->chgrp("$path/sites/$uri/files", $this->getServices('http')->getProperty('web_group'))
 
                 /**
-                 * This way is quiet.
+                 * @TODO: Break this up into chunks. People would like to see "setting file permissions" and "creating settings file"
+                 * @TODO: Create subclasses. This is only the site.prepare task for Drupal sites.
                  *
                  * @see verify.provision.inc
                  * @see drush_provision_drupal_pre_provision_verify()
@@ -238,65 +239,14 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
                     $this->fs->chgrp($dir, $user);
 
                     // Copy Drupal's default settings.php file into place.
-                    if (file_exists("$docroot/sites/default/default.settings.php")) {
+                    if (!$this->fs->exists("$site_path/settings.php")) {
                         $this->fs->copy("$docroot/sites/default/default.settings.php", "$site_path/settings.php");
                     }
 
                     $this->fs->chmod("$site_path/settings.php", 02770);
                     $this->fs->chgrp("$site_path/settings.php", $this->getProvision()->getConfig()->get('web_user'));
 
-
-                    if (strpos(file_get_contents("$site_path/settings.php"), "// PROVISION SETTINGS") === FALSE) {
-
-                      $hash_salt = self::randomBytesBase64(55);
-
-                        // @TODO: This is only true for Drupal version 7.50 and up. See Provision/Config/Drupal/Settings.php
-                            // We are treading more and more into the Drupal-only world, so I'm leaving this hard coded to TRUE until we develop something else.
-                    $database_settings = <<<PHP
-                        
-// PROVISION SETTINGS
-\$databases['default']['default'] = array(
-    'driver' => \$_SERVER['db_type'],
-    'database' => \$_SERVER['db_name'],
-    'username' => \$_SERVER['db_user'],
-    'password' => \$_SERVER['db_passwd'],
-    'host' => \$_SERVER['db_host'],
-    /* Drupal interprets \$databases['db_port'] as a string, whereas Drush sees
-     * it as an integer. To maintain consistency, we cast it to a string. This
-     * should probably be fixed in Drush.
-     */
-    'port' => (string) \$_SERVER['db_port'],
-    'charset' => 'utf8mb4',
-    'collation' => 'utf8mb4_general_ci',
-  );
-
-\$db_url['default'] = \$_SERVER['db_type'] . '://' . \$_SERVER['db_user'] . ':' . \$_SERVER['db_passwd'] . '@' . \$_SERVER['db_host'] . ':' . \$_SERVER['db_port'] . '/' . \$_SERVER['db_name'];
-
-\$settings['hash_salt'] = '$hash_salt';
-
-PHP;
-                    $this->fs->appendToFile("$site_path/settings.php", $database_settings);
-                }
             });
-
-        // FROM verify.provision.inc  drush_provision_drupal_pre_provision_verify() line 118
-//        drush_set_option('packages', _scrub_object(provision_drupal_system_map()), 'site');
-//        // This is the actual drupal provisioning requirements.
-//        _provision_drupal_create_directories();
-//        _provision_drupal_maintain_aliases();
-//        _provision_drupal_ensure_htaccess_update();
-//        // Requires at least the database settings to complete.
-//
-//        _provision_drupal_create_settings_file();
-//
-//        // If this is the hostmaster site, save the ~/.drush/drushrc.php file.
-//        if (d()->root == d('@hostmaster')->root && d()->uri == d('@hostmaster')->uri) {
-//            $aegir_drushrc = new Provision_Config_Drushrc_Aegir();
-//            $aegir_drushrc->write();
-//        }
-//
-//        provision_drupal_push_site(drush_get_option('override_slave_authority', FALSE));
-//
         return $steps;
     }
     
