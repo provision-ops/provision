@@ -10,6 +10,7 @@ use Aegir\Provision\Command\SetupCommand;
 use Aegir\Provision\Command\ShellCommand;
 use Aegir\Provision\Command\StatusCommand;
 use Aegir\Provision\Command\VerifyCommand;
+use Aegir\Provision\Command\InstallCommand;
 use Aegir\Provision\Common\ProvisionAwareTrait;
 use Aegir\Provision\Console\Config;
 use Aegir\Provision\Console\ConsoleOutput;
@@ -155,6 +156,7 @@ class Application extends BaseApplication
         $commands[] = new ShellCommand();
         $commands[] = new StatusCommand();
         $commands[] = new VerifyCommand();
+        $commands[] = new InstallCommand();
 
         return $commands;
     }

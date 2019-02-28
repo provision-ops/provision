@@ -28,8 +28,17 @@ abstract class Command extends BaseCommand
     use ProvisionAwareTrait;
     use LoggerAwareTrait;
 
+    /**
+     * Set if this command requires a context. If so provision will automatically ask for which one if not specified..
+     */
     const CONTEXT_REQUIRED = FALSE;
 
+    /**
+     * Set if this command is only for certain context types.
+     */
+    const CONTEXT_REQUIRED_TYPES = [];
+
+    const CONTEXT_REQUIRED_QUESTION = 'Which context';
     /**
      * @var \Symfony\Component\Console\Input\InputInterface
      */
@@ -99,7 +108,8 @@ abstract class Command extends BaseCommand
         elseif (($this::CONTEXT_REQUIRED && empty($this->input->getOption('context')))
             || ($this->getName() == 'save' && empty($this->input->getOption('context')))
         ) {
-            $this->askForContext();
+
+            $this->askForContext($this::CONTEXT_REQUIRED_QUESTION, $this::CONTEXT_REQUIRED_TYPES);
             $this->input->setOption('context', $this->context_name);
 
             try {
@@ -114,12 +124,12 @@ abstract class Command extends BaseCommand
     /**
      * Show a list of Contexts to the user for them to choose from.
      */
-    public function askForContext($question = 'Choose a context') {
+    public function askForContext($question = self::CONTEXT_REQUIRED_QUESTION, $context_types = array()) {
         if (empty($this->getProvision()->getAllContextsOptions())) {
             throw new \Exception('No contexts available! use `provision save` to create one.');
         }
 
-        $this->context_name = $this->io->choice($question, $this->getProvision()->getAllContextsOptions());
+        $this->context_name = $this->io->choice($question, $this->getProvision()->getAllContextsOptions($context_types));
     }
     
     /**

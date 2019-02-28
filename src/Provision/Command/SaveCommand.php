@@ -355,7 +355,7 @@ class SaveCommand extends Command
      * Override  to add options
      * @param string $question
      */
-    public function askForContext($question = 'Choose a context')
+    public function askForContext($question = 'Choose a context', $context_types = array())
     {
         $options = $this->getProvision()->getAllContextsOptions();
 

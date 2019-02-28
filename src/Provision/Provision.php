@@ -395,12 +395,14 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
      * Get a simple array of all contexts, for use in an options list.
      * @return array
      */
-    public function getAllContextsOptions($type = NULL) {
+    public function getAllContextsOptions($types = array()) {
         $options = [];
         foreach ($this->getAllContexts() as $name => $context) {
-            if ($type) {
-                if ($context->type == $type) {
-                    $options[$name] = $context->name;
+            if (!empty($types)) {
+                foreach ($types as $type) {
+                    if ($context->type == $type) {
+                        $options[$name] = $context->name;
+                    }
                 }
             }
             else {
