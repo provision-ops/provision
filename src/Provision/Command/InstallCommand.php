@@ -55,12 +55,18 @@ class InstallCommand extends Command
     {
         $inputDefinition = [];
 
-
         $inputDefinition[] = new InputOption(
             'option',
             null,
             InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL,
             "Pass install options to the sites install command."
+        );
+
+        $inputDefinition[] = new InputOption(
+            'skip-verify',
+            null,
+            InputOption::VALUE_NONE,
+            "By default, the 'provision verify' command is run before the install process starts. Pass --skip-verify to skip it."
         );
 
         return new InputDefinition($inputDefinition);
@@ -71,6 +77,10 @@ class InstallCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        if (!$input->getOption('skip-verify')) {
+            $this->context->verifyCommand();
+        }
+
         // @TODO: Allow dynamic options to be passed to the install command.
         $options = $input->getOption('option');
 
@@ -81,7 +91,8 @@ class InstallCommand extends Command
         $document_root = $site->getProperty('document_root_full');
         $site_dir = str_replace('sites/', '', $site->getProperty('site_path'));
 
-        // @TODO: Once PlatformTypes are developed, kick off to that code.
+        // @TODO: Convert to Tasks!
+        // @TODO: Create Subclasses from SiteContext for DrupalSiteContext
         // @TODO: Figure out a better way to run a drush command.
         // @TODO: Create system to detect the proper install method: Site local drush 9, provision/drush 8?
 
