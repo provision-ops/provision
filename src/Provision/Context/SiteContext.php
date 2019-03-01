@@ -262,9 +262,6 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
      */
     public function install() {
 
-        // @TODO: Allow dynamic options to be passed to the install command.
-        $options = $this->getProvision()->getInput()->getOption('option');
-
         $site = $this;
         $service = $site->getSubscription('db');
         $server = $service->server->getProperty('remote_host');
@@ -290,6 +287,7 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
 
         $command = $this->getProvision()->getTasks()->taskExec($drush)
             ->arg('site-install')
+            ->arg($this->getProperty('profile'))
             ->silent(!$this->getProvision()->getOutput()->isVerbose())
         ;
 
@@ -300,6 +298,12 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
         $command->arg("--sites-subdir={$site_dir}");
         $command->arg($this->getProvision()->getInput()->getOption("ansi")? '--ansi': '');
 
+        // Allow dynamic options to be passed to the install command.
+        $options = $this->getProvision()->getInput()->getOption('option');
+        foreach ($options as $option) {
+            $command->arg($option);
+        }
+
         $cmd = $command->getCommand();
 
         if (!$this->getProvision()->getInput()->getOption('skip-verify')) {
@@ -307,10 +311,11 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
         }
 
         $steps['site.install'] = Provision::newStep()
-            ->start("Running <comment>$cmd</comment> in <comment>$root</comment> ...")
+            ->start("Installing Drupal with the '{$this->getProperty('profile')}' profile...")
             ->execute(function () use ($cmd, $site, $root) {
                 // Site install script output is important, so we force verbosity.... I think
-                return $site->getService('http')->provider->shell_exec($cmd, $root, 'exit', self::FORCE_VERBOSE_INSTALL);
+                // @TODO: drush site-install returns non-zero exit code!
+                return $site->getService('http')->provider->shell_exec($cmd, $root, 'exit', self::FORCE_VERBOSE_INSTALL) | 0;
             });
 
         return $steps;
