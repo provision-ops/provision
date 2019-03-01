@@ -22,6 +22,7 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
     public $type = 'site';
     const TYPE = 'site';
 
+    const FORCE_VERBOSE_INSTALL = TRUE;
     /**
      * @var \Aegir\Provision\Context\PlatformContext
      */
@@ -164,6 +165,7 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
 
         $steps = parent::verify();
 
+        // @TODO: These should be in a step. Maybe in runSteps()
         $this->getProvision()->io()->customLite($this->getProperty('uri'), 'Site URL: ', 'info');
         $this->getProvision()->io()->customLite($this->getProperty('root'), 'Root: ', 'info');
         $this->getProvision()->io()->customLite($this->config_path, 'Configuration File: ', 'info');
@@ -249,7 +251,72 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
             });
         return $steps;
     }
-    
+
+    /**
+     * Steps needed for the 'provision install' command.
+     *
+     * @TODO: Make this the Drupal Subclass.
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function install() {
+
+        // @TODO: Allow dynamic options to be passed to the install command.
+        $options = $this->getProvision()->getInput()->getOption('option');
+
+        $site = $this;
+        $service = $site->getSubscription('db');
+        $server = $service->server->getProperty('remote_host');
+        $root = $site->getProperty('root');
+        $document_root = $site->getProperty('document_root_full');
+        $site_dir = str_replace('sites/', '', $site->getProperty('site_path'));
+
+        // @TODO: Figure out a better way to run a drush command.
+        // @TODO: Create better system to detect the proper install method: Site local drush 9, provision/drush 8?
+
+        if (file_exists("{$root}/bin/drush")) {
+            $drush = realpath("{$root}/bin/drush");
+        }
+        elseif (file_exists("{$root}/vendor/bin/drush")) {
+            $drush = realpath("{$root}/vendor/bin/drush");
+        }
+        elseif (file_exists(__DIR__ . '/../../../bin/drush')) {
+            $drush = realpath(__DIR__ . '/../../../bin/drush');
+        }
+        else {
+            throw new \Exception('Unable to drush in your site. Please install drush into your codebase or (COMING SOON) specify an alternate install command in your provision.yml file.');
+        }
+
+        $command = $this->getProvision()->getTasks()->taskExec($drush)
+            ->arg('site-install')
+            ->silent(!$this->getProvision()->getOutput()->isVerbose())
+        ;
+
+        // @TODO: Add getDbUrl() method to make this easier.
+        $command->arg("--db-url=mysql://{$service->getProperty('db_user')}:{$service->getProperty('db_password')}@{$server}:{$service->server->getService('db')->getProperty('db_port')}/{$service->getProperty('db_name')}");
+
+        $command->arg("--root={$document_root}");
+        $command->arg("--sites-subdir={$site_dir}");
+        $command->arg($this->getProvision()->getInput()->getOption("ansi")? '--ansi': '');
+
+        $cmd = $command->getCommand();
+
+        if (!$this->getProvision()->getInput()->getOption('skip-verify')) {
+            $steps = $this->verify();
+        }
+
+        $steps['site.install'] = Provision::newStep()
+            ->start("Running <comment>$cmd</comment> in <comment>$root</comment> ...")
+            ->execute(function () use ($cmd, $site, $root) {
+                // Site install script output is important, so we force verbosity.... I think
+                return $site->getService('http')->provider->shell_exec($cmd, $root, 'exit', self::FORCE_VERBOSE_INSTALL);
+            });
+
+        return $steps;
+
+    }
+
     /**
      * Return a list of folders to create in the Drupal root.
      *

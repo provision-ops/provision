@@ -77,50 +77,23 @@ class InstallCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        if (!$input->getOption('skip-verify')) {
-            $this->context->runSteps('verify');
+
+
+        $this->io->title(strtr("Verify %type: %name", [
+            '%name' => $this->context_name,
+            '%type' => $this->context->type,
+        ]));
+
+        /**
+         * The provision-verify command function looks like:
+         *
+         *
+        function drush_provision_verify() {
+        provision_backend_invoke(d()->name, 'provision-save');
+        d()->command_invoke('verify');
         }
+         */
 
-        // @TODO: Allow dynamic options to be passed to the install command.
-        $options = $input->getOption('option');
-
-        $site = $this->context;
-        $service = $site->getSubscription('db');
-        $server = $service->server->getProperty('remote_host');
-        $root = $site->getProperty('root');
-        $document_root = $site->getProperty('document_root_full');
-        $site_dir = str_replace('sites/', '', $site->getProperty('site_path'));
-
-        // @TODO: Convert to Tasks!
-        // @TODO: Create Subclasses from SiteContext for DrupalSiteContext
-        // @TODO: Figure out a better way to run a drush command.
-        // @TODO: Create system to detect the proper install method: Site local drush 9, provision/drush 8?
-
-        if (file_exists("{$root}/bin/drush")) {
-            $drush = realpath("{$root}/bin/drush");
-        }
-        elseif (file_exists("{$root}/vendor/bin/drush")) {
-            $drush = realpath("{$root}/vendor/bin/drush");
-        }
-        elseif (file_exists(__DIR__ . '/../../../bin/drush')) {
-            $drush = realpath(__DIR__ . '/../../../bin/drush');
-        }
-        else {
-            throw new \Exception('Unable to drush in your site. Please install drush into your codebase or (COMING SOON) specify an alternate install command in your provision.yml file.');
-        }
-
-        $command = $this->getProvision()->getTasks()->taskExec($drush)
-            ->arg('site-install')
-            ->silent(!$this->getProvision()->getOutput()->isVerbose())
-        ;
-
-        // @TODO: Add getDbUrl() method to make this easier.
-        $command->arg("--db-url=mysql://{$service->getProperty('db_user')}:{$service->getProperty('db_password')}@{$server}:{$service->server->getService('db')->getProperty('db_port')}/{$service->getProperty('db_name')}");
-
-        $command->arg("--root={$document_root}");
-        $command->arg("--sites-subdir={$site_dir}");
-
-        $cmd = $command->getCommand();
-        return $site->getService('http')->provider->shell_exec($cmd, $root, 'exit');
+        $this->context->runSteps('install');
     }
 }
