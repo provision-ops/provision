@@ -1259,13 +1259,6 @@ if ( $args ~* "/autocomplete/" ) {
   return 405;
 }
 error_page 405 = @drupal;
-
-###
-### Rewrite legacy requests with /index.php to extension-free URL.
-###
-if ( $args ~* "^q=(?<query_value>.*)" ) {
-  rewrite ^/index.php$ $scheme://$host/?q=$query_value? permanent;
-}
 <?php endif; ?>
 <?php endif; ?>
 
@@ -1327,8 +1320,9 @@ location @cache {
 ###
 location @drupal {
   set $core_detected "Legacy";
+  set $location_detected "Nowhere";
   ###
-  ### For Drupal >= 7
+  ### Detect
   ###
   if ( -e $document_root/web.config ) {
     set $core_detected "Regular";
@@ -1336,24 +1330,50 @@ location @drupal {
   if ( -e $document_root/core ) {
     set $core_detected "Modern";
   }
+  error_page 402 = @legacy;
+  if ( $core_detected = Legacy ) {
+    return 402;
+  }
+  error_page 406 = @regular;
+  if ( $core_detected = Regular ) {
+    return 406;
+  }
   error_page 418 = @modern;
-  if ( $core_detected ~ (?:Regular|Modern) ) {
+  if ( $core_detected = Modern ) {
     return 418;
   }
   ###
-  ### For Drupal 6
+  ### Fallback
   ###
+  set $location_detected "Fallback";
+  rewrite ^ /index.php?$query_string last;
+}
+
+###
+### Special location for Drupal 6.
+###
+location @legacy {
+  set $location_detected "Legacy";
   rewrite ^/(.*)$ /index.php?q=$1 last;
 }
 
-<?php if ($nginx_config_mode == 'extended'): ?>
 ###
-### Special location for Drupal 7+.
+### Special location for Drupal 7.
+###
+location @regular {
+  set $location_detected "Regular";
+  rewrite ^ /index.php?$query_string last;
+}
+
+###
+### Special location for Drupal 8.
 ###
 location @modern {
+  set $location_detected "Modern";
   try_files $uri /index.php?$query_string;
 }
 
+<?php if ($nginx_config_mode == 'extended'): ?>
 ###
 ### Send all non-static requests to php-fpm, restricted to known php file.
 ###
@@ -1366,6 +1386,10 @@ location = /index.php {
 <?php endif; ?>
 <?php if ($nginx_config_mode == 'extended'): ?>
   add_header X-Core-Variant "$core_detected";
+  add_header X-Loc-Where "$location_detected";
+  add_header X-Http-Pragma "$http_pragma";
+  add_header X-Arg-Nocache "$arg_nocache";
+  add_header X-Arg-Comment "$arg_comment";
   add_header X-Speed-Cache "$upstream_cache_status";
   add_header X-Speed-Cache-UID "$cache_uid";
   add_header X-Speed-Cache-Key "$key_uri";
@@ -1396,6 +1420,9 @@ location = /index.php {
   if ( $nocache_details ~ (?:AegirCookie|Args|Skip) ) {
     set $nocache "NoCache";
   }
+  add_header X-Debug-NoCache-Switch "$nocache";
+  add_header X-Debug-NoCache-Auth "$http_authorization";
+  add_header X-Debug-NoCache-Cookie "$cookie_NoCacheID";
   fastcgi_cache speed;
   fastcgi_cache_methods GET HEAD; ### Nginx default, but added for clarity
   fastcgi_cache_min_uses 1;
