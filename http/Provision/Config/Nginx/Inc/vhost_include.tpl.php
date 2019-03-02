@@ -1136,7 +1136,15 @@ location ~* \.xml$ {
 ###
 ### Deny bots on never cached uri.
 ###
-location ~* ^/(?:.*/)?(?:admin|user|cart|checkout|logout|comment/reply) {
+location ~* ^/(?:admin|user|cart|checkout|logout) {
+  if ( $is_bot ) {
+    return 403;
+  }
+  access_log off;
+  set $nocache_details "Skip";
+  try_files $uri @drupal;
+}
+location ~* ^/\w\w/(?:admin|user|cart|checkout|logout) {
   if ( $is_bot ) {
     return 403;
   }
@@ -1148,7 +1156,7 @@ location ~* ^/(?:.*/)?(?:admin|user|cart|checkout|logout|comment/reply) {
 ###
 ### Protect from DoS attempts on never cached uri.
 ###
-location ~* ^/(?:.*/)?(?:node/[0-9]+/edit|node/add) {
+location ~* ^/(?:.*/)?(?:node/[0-9]+/edit|node/add|comment/reply) {
   if ( $is_bot ) {
     return 403;
   }
