@@ -1240,12 +1240,12 @@ location ~ ^/(?<esi>esi/.*)"$ {
   fastcgi_cache_valid 301 302 403 404 1s;
   fastcgi_cache_valid any 1s;
   fastcgi_cache_lock on;
-  fastcgi_ignore_headers Cache-Control Expires;
+  fastcgi_ignore_headers Cache-Control Expires Vary;
   fastcgi_pass_header Set-Cookie;
   fastcgi_pass_header X-Accel-Expires;
   fastcgi_pass_header X-Accel-Redirect;
-  fastcgi_no_cache $cookie_NoCacheID $http_authorization $http_pragma $nocache;
-  fastcgi_cache_bypass $cookie_NoCacheID $http_authorization $http_pragma $nocache;
+  fastcgi_no_cache $cookie_NoCacheID $http_authorization $nocache;
+  fastcgi_cache_bypass $cookie_NoCacheID $http_authorization $nocache;
   fastcgi_cache_use_stale error http_500 http_503 invalid_header timeout updating;
   tcp_nopush off;
   keepalive_requests 0;
@@ -1404,12 +1404,12 @@ location = /index.php {
   fastcgi_cache_valid 301 302 403 404 1s;
   fastcgi_cache_valid any 1s;
   fastcgi_cache_lock on;
-  fastcgi_ignore_headers Cache-Control Expires;
+  fastcgi_ignore_headers Cache-Control Expires Vary;
   fastcgi_pass_header Set-Cookie;
   fastcgi_pass_header X-Accel-Expires;
   fastcgi_pass_header X-Accel-Redirect;
-  fastcgi_no_cache $cookie_NoCacheID $http_authorization $http_pragma $nocache;
-  fastcgi_cache_bypass $cookie_NoCacheID $http_authorization $http_pragma $nocache;
+  fastcgi_no_cache $cookie_NoCacheID $http_authorization $nocache;
+  fastcgi_cache_bypass $cookie_NoCacheID $http_authorization $nocache;
   fastcgi_cache_use_stale error http_500 http_503 invalid_header timeout updating;
 }
 <?php endif; ?>
