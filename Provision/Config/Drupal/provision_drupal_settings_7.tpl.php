@@ -157,6 +157,11 @@ if (isset($_SERVER['db_name'])) {
 <?php endif; ?>
 <?php endif; ?>
 
+  /**
+   * Set the Syslog identity to the site name so it's not always "drupal".
+   */
+  $conf['syslog_identity'] = '<?php print $this->uri ?>';
+
 <?php print $extra_config; ?>
 
   # Additional host wide configuration settings. Useful for safely specifying configuration settings.
