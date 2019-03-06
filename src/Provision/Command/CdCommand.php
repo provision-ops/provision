@@ -26,8 +26,8 @@ class CdCommand extends Command
     {
         $this
           ->setName('cd')
-          ->setDescription($this->trans('commands.cd.description'))
-          ->setHelp($this->trans('commands.cd.help'))
+          ->setDescription('Change into the directory of this site, server, or platform.')
+          ->setHelp('If the chosen context is a site or platform, the `cd` command will put you into the directory of that sites source code. If the chosen context is a server, you will be put into the server config folder.')
           ;
     }
 
