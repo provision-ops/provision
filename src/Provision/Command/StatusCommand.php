@@ -32,6 +32,7 @@ class StatusCommand extends Command
           ->setName('status')
           ->setDescription('Display system status.')
           ->setHelp('Lists helpful information about your system.')
+          ->setAliases(array('ls'))
         ;
     }
 
