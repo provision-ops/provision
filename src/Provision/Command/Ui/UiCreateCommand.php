@@ -90,9 +90,9 @@ class UiCreateCommand extends Command
                 'The version to install. Will default to the latest devshop version.'
             )
 
-            // aegir_host
+            // remote_host
             ->addOption(
-                'aegir_host', NULL, InputOption::VALUE_OPTIONAL,
+                'remote_host', NULL, InputOption::VALUE_OPTIONAL,
                 'The aegir host. Will default to the detected hostname of this server.'
             )
 
@@ -102,23 +102,23 @@ class UiCreateCommand extends Command
                 'The user running this script. Will default to the detected user.'
             )
 
-            // aegir_db_host
+            // db_host
             ->addOption(
-                'aegir_db_host', NULL, InputOption::VALUE_OPTIONAL,
+                'db_host', NULL, InputOption::VALUE_OPTIONAL,
                 'The database host.',
                 'localhost'
             )
 
-            // aegir_db_port
+            // db_port
             ->addOption(
-                'aegir_db_port', NULL, InputOption::VALUE_OPTIONAL,
+                'db_port', NULL, InputOption::VALUE_OPTIONAL,
                 'The database server port.',
                 '3306'
             )
 
-            // aegir_db_user
+            // db_user
             ->addOption(
-                'aegir_db_user', NULL, InputOption::VALUE_OPTIONAL,
+                'db_user', NULL, InputOption::VALUE_OPTIONAL,
                 'The database user, one that is allowed to CREATE new databases.',
                 'root'
             )
@@ -126,7 +126,7 @@ class UiCreateCommand extends Command
             // aegir_db_pass
             ->addOption(
                 'aegir_db_pass', NULL, InputOption::VALUE_OPTIONAL,
-                'The database password for the "aegir_db_user"',
+                'The database password for the "db_user"',
                 'root'
             )
 
@@ -159,7 +159,7 @@ class UiCreateCommand extends Command
 
             // http_service_type
             ->addOption(
-                'http_service_type', NULL, InputOption::VALUE_OPTIONAL,
+                'server_http', NULL, InputOption::VALUE_OPTIONAL,
                 'The HTTP service to use: apache or nginx',
                 'apache'
             )
@@ -185,7 +185,7 @@ class UiCreateCommand extends Command
             )
 
             // client_email
-            // If not specified, will use the aegir_host
+            // If not specified, will use the remote_host
             ->addOption(
                 'client_email', NULL, InputOption::VALUE_OPTIONAL,
                 'The email to use for the administrator user.'
@@ -232,7 +232,7 @@ class UiCreateCommand extends Command
         $output->writeln('');
         $output->writeln(' 1. Create provision "contexts" for:');
         $output->writeln('   - Server <comment>server_master</comment> (with http and db services)');
-        $output->writeln('   - server_$aegir_db_host if different than aegir_host. (db server)');
+        $output->writeln('   - server_$db_host if different than remote_host. (db server)');
 //        $output->writeln('   - platform_provision_io (devmaster codebase)');
         $output->writeln('   - Site <comment>provision_ui</comment> (Provision Web Interface)');
         $output->writeln(' 2. Install the provision_ui site');
@@ -261,9 +261,9 @@ class UiCreateCommand extends Command
             $input->setOption('site', $this->findFqdn());
         }
 
-        // aegir_host
-        if (!$input->getOption('aegir_host')) {
-            $input->setOption('aegir_host', $this->findFqdn());
+        // remote_host
+        if (!$input->getOption('remote_host')) {
+            $input->setOption('remote_host', $this->findFqdn());
         }
 
         // script_user
@@ -294,7 +294,7 @@ class UiCreateCommand extends Command
             include $input->getOption('aegir_root') . '/.drush/server_localhost.alias.drushrc.php';
             if (isset($aliases['server_localhost']['master_db'])) {
                 $input->setOption('aegir_db_pass', parse_url($aliases['server_localhost']['master_db'], PHP_URL_PASS));
-                $input->setOption('aegir_db_user', parse_url($aliases['server_localhost']['master_db'], PHP_URL_USER));
+                $input->setOption('db_user', parse_url($aliases['server_localhost']['master_db'], PHP_URL_USER));
             }
 
         }
@@ -307,11 +307,11 @@ class UiCreateCommand extends Command
 
         // client_email
         if (!$input->getOption('client_email')) {
-            if ($input->getOption('aegir_host') == 'localhost') {
+            if ($input->getOption('remote_host') == 'localhost') {
                 $default_email = 'webmaster@example.com';
             }
             else {
-                $default_email = 'webmaster@' . $input->getOption('aegir_host');
+                $default_email = 'webmaster@' . $input->getOption('remote_host');
             }
             $input->setOption('client_email', $default_email);
         }
@@ -322,7 +322,7 @@ class UiCreateCommand extends Command
      * otherwise fail later in the install, and thus be harder to recover from.
      */
     private function validateSecureDatabase() {
-        $command = sprintf('mysql -u intntnllyInvalid -h %s -P %s -e "SELECT VERSION()"', $this->input->getOption('aegir_db_host'), $this->input->getOption('aegir_db_port'));
+        $command = sprintf('mysql -u intntnllyInvalid -h %s -P %s -e "SELECT VERSION()"', $this->input->getOption('db_host'), $this->input->getOption('db_port'));
 
         // Run the Mysql process to test the database.
         $process = new Process($command);
@@ -463,8 +463,8 @@ class UiCreateCommand extends Command
      * Contexts:
      *
      * - [x] server_master: This server. Home to devmaster site.
-     * - [x] server_localhost: The database server.  Not used if "aegir_db_host" is
-     *   the same as "aegir_host".
+     * - [x] server_localhost: The database server.  Not used if "db_host" is
+     *   the same as "remote_host".
      * - [ ] platform_hostmaster: The aegir platform for the hostmaster/devmaster front-end site.
      * - [ ] hostmaster: The hostmaster/devmaster front-end site.
      *
@@ -474,23 +474,23 @@ class UiCreateCommand extends Command
 
         // Get Database Server Credentials from options.
         $master_db = sprintf("mysql://%s:%s@%s:%s",
-            urlencode($this->input->getOption('aegir_db_user')),
+            urlencode($this->input->getOption('db_user')),
             urlencode($this->input->getOption('aegir_db_pass')),
-            $this->input->getOption('aegir_db_host'),
-            $this->input->getOption('aegir_db_port')
+            $this->input->getOption('db_host'),
+            $this->input->getOption('db_port')
         );
 
         // If the db host and web host are different...
-        if ($this->input->getOption('aegir_host') != $this->input->getOption('aegir_db_host')) {
+        if ($this->input->getOption('remote_host') != $this->input->getOption('db_host')) {
 
             // Create Database Server Context.
-            $db_server = 'server_' . $this->input->getOption('aegir_db_host');
+            $db_server = 'server_' . $this->input->getOption('db_host');
             $this->saveContext($db_server, array(
-                'remote_host' => $this->input->getOption('aegir_db_host'),
+                'remote_host' => $this->input->getOption('db_host'),
                 'context_type' => 'server',
                 'db_service_type' => 'mysql',
                 'master_db' => $master_db,
-                'db_port' => $this->input->getOption('aegir_db_port'),
+                'db_port' => $this->input->getOption('db_port'),
             ));
 
             $server_master_db_service_type = NULL;
@@ -508,40 +508,41 @@ class UiCreateCommand extends Command
         // Save @server_master
         $this->saveContext('server_master', array(
             'context_type'      => 'server',
-            'remote_host'       => $this->input->getOption('aegir_host'),
+            'remote_host'       => $this->input->getOption('remote_host'),
             'aegir_root'        => $this->input->getOption('aegir_root'),
             'script_user'       => $this->input->getOption('script_user'),
-            'http_service_type' => $this->input->getOption('http_service_type'),
+//            'http_service_type' => $this->input->getOption('http_service_type'),
             'http_port'         => $this->input->getOption('http_port'),
             'web_group'         => $this->input->getOption('web_group'),
-            'master_url'        => "http://" . $this->input->getOption('site'),
-            'db_port'           => $this->input->getOption('aegir_db_port'),
-            'db_service_type'   => $server_master_db_service_type,
+//            'master_url'        => "http://" . $this->input->getOption('site'),
+            'db_port'           => $this->input->getOption('db_port'),
+//            'db_service_type'   => $server_master_db_service_type,
             'master_db'         => $server_master_master_db,
         ));
 
         // Save Hostmaster Platform
         $server = '@server_master';
-        $this->saveContext('platform_hostmaster', array(
-            'context_type'      => 'platform',
-            'server' => $server,
-            'web_server' => $server,
-            'root' => $this->input->getOption('root'),
-            'makefile' => $this->input->getOption('makefile'),
-        ));
+//        $this->saveContext('platform_hostmaster', array(
+//            'context_type'      => 'platform',
+//            'server' => $server,
+//            'web_server' => $server,
+//            'root' => $this->input->getOption('root'),
+//            'makefile' => $this->input->getOption('makefile'),
+//        ));
 
         // Save Hostmaster Site context, and flag for installation, pre-verify.
         $platform_name = '@platform_hostmaster';
         $this->saveContext('hostmaster', array(
             'context_type' => 'site',
-            'platform' => $platform_name,
-            'db_server' => '@' . $db_server,
+//            'platform' => $platform_name,
+            'server_db' => '@' . $db_server,
+            'server_http' => '@' . $db_server,
             'uri' => $this->input->getOption('site'),
             'root' => $this->input->getOption('root'),
-            'client_name' => $this->input->getOption('client_name'),
+//            'client_name' => $this->input->getOption('client_name'),
             'profile' => $this->input->getOption('profile'),
-            'drush_aliases' => 'hm',
-            'https_enabled' => 1, // HOSTING_HTTPS_ENABLED
+//            'drush_aliases' => 'hm',
+//            'https_enabled' => 1, // HOSTING_HTTPS_ENABLED
         ), TRUE);
 
         // So... saveContext() saves the alias, then runs provision-verify.
@@ -560,15 +561,35 @@ class UiCreateCommand extends Command
      */
     private function saveContext($name, $data, $install = FALSE) {
 
-        if (($this->input->isInteractive() && $this->io->confirm("Save {$data['context_type']} {$name}?"))) {
+        if (!$this->input->isInteractive() || $this->io->confirm("Save {$data['context_type']} {$name}?")) {
             $command = $this->getApplication()->find('context:save');
 
+            $arguments["--context"] = $name;
             foreach ($data as $option_name => $option_value) {
                 $arguments["--$option_name"] = $option_value;
             }
 
+            // Pass specific options through
+            foreach (array(
+                        'quiet',
+                         'verbose',
+                         'ansi',
+                         'no-ansi',
+                         'no-interaction',
+                         'makefile',
+                         'make_working_copy',
+                         'make_working_copy',
+                     ) as $key){
+                $arguments["--{$key}"] = $this->input->getOption($key);
+            }
+
+
             $input = new ArrayInput($arguments);
 
+            print "RUNNING context:save for $name with  "; print_r($arguments);
+
+            // @TODO: Figure out why $command includes a context by default.
+            $command->context = NULL;
             $provision_save_exit_code = $command->run($input, $this->output);
             if ($provision_save_exit_code !== 0) {
                 throw new \Exception('provision context:save command did not execute successfully.');
