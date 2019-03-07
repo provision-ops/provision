@@ -9,6 +9,8 @@ use Aegir\Provision\Command\ServicesCommand;
 use Aegir\Provision\Command\SetupCommand;
 use Aegir\Provision\Command\ShellCommand;
 use Aegir\Provision\Command\StatusCommand;
+use Aegir\Provision\Command\Ui\CreateUiCommand;
+use Aegir\Provision\Command\Ui\UiCreateCommand;
 use Aegir\Provision\Command\VerifyCommand;
 use Aegir\Provision\Command\InstallCommand;
 use Aegir\Provision\Common\ProvisionAwareTrait;
@@ -157,6 +159,7 @@ class Application extends BaseApplication
         $commands[] = new StatusCommand();
         $commands[] = new VerifyCommand();
         $commands[] = new InstallCommand();
+        $commands[] = new UiCreateCommand();
 
         return $commands;
     }
