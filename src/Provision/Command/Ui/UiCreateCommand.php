@@ -7,6 +7,7 @@ use Aegir\Provision\Context;
 use Aegir\Provision\Context\PlatformContext;
 use Aegir\Provision\Context\ServerContext;
 use Aegir\Provision\Context\SiteContext;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
@@ -231,7 +232,7 @@ class UiCreateCommand extends Command
         $output->writeln('');
         $output->writeln(' 1. Create provision "contexts" for:');
         $output->writeln('   - Server <comment>server_master</comment> (with http and db services)');
-//        $output->writeln('   - server_localhost (db server)');
+        $output->writeln('   - server_$aegir_db_host if different than aegir_host. (db server)');
 //        $output->writeln('   - platform_provision_io (devmaster codebase)');
         $output->writeln('   - Site <comment>provision_ui</comment> (Provision Web Interface)');
         $output->writeln(' 2. Install the provision_ui site');
@@ -367,8 +368,7 @@ class UiCreateCommand extends Command
         }
 
         $this->output->writeln('');
-        $question = new ConfirmationQuestion('Continue installation with these options? ', false);
-        if ($this->input->isInteractive() && !$this->getHelper('question')->ask($this->input, $this->output, $question)) {
+        if ($this->input->isInteractive() && !$this->io->confirm('Continue installation with these options? ')) {
             $this->output->writeln('<fg=red>Installation aborted.');
             $this->output->writeln('');
             exit(1);
@@ -560,74 +560,91 @@ class UiCreateCommand extends Command
      */
     private function saveContext($name, $data, $install = FALSE) {
 
-        $data_export = var_export($data, TRUE);
-        $output = <<<PHP
-<?php
-/**
- * @file
- * An Aegir Context, written by the `devshop devmaster:install` command.
- *
- * Changes to this file will be overwritten on the next "provision-verify".
- */
-\$aliases['$name'] = $data_export;
+        if (($this->input->isInteractive() && $this->io->confirm("Save {$data['context_type']} {$name}?"))) {
+            $command = $this->getApplication()->find('context:save');
 
-PHP;
-
-        // Determine home path and path to alias file.
-        $drush_path = $this->input->getOption('drush-path');
-        $home = $this->input->getOption('aegir_root');
-        $path_to_alias_file = "{$home}/.drush/{$name}.alias.drushrc.php";
-
-        // Notify user.
-        $this->output->writeln("Writing alias file {$path_to_alias_file}...");
-        $this->output->writeln("<comment>$output</comment>");
-
-        // Dump to file
-        $fs = new Filesystem();
-        $fs->dumpFile($path_to_alias_file, $output);
-        $this->output->writeln("<info>Done</info>");
-
-        // If this is hostmaster, we need to install first.  provision-verify will fail, otherwise.
-        if ($install) {
-            $client_email = $this->input->getOption('client_email');
-            $this->output->writeln("");
-            $this->output->writeln("Running <comment>{$drush_path} @{$name} provision-install --client_email={$client_email}</comment> ...");
-            $process = $this->getProcess("{$drush_path} @{$name} provision-install --client_email={$client_email} -v");
-            $process->setTimeout(NULL);
-
-            // Ensure process runs sucessfully.
-            if ($this->runProcess($process)) {
-                $this->output->writeln("");
-                $this->output->writeln("Running <comment>drush @{$name} provision-install</comment>: <info>Done</info>");
-                $this->output->writeln("");
+            foreach ($data as $option_name => $option_value) {
+                $arguments["--$option_name"] = $option_value;
             }
-            else {
-                $this->output->writeln("");
-                $this->output->writeln("<error>Unable to run drush @{$name} provision-install.");
-                $this->output->writeln("");
-                exit(1);
+
+            $input = new ArrayInput($arguments);
+
+            $provision_save_exit_code = $command->run($input, $this->output);
+            if ($provision_save_exit_code !== 0) {
+                throw new \Exception('provision context:save command did not execute successfully.');
             }
-        }
-
-        // Run provision-verify
-        $drush_path = $this->input->getOption('drush-path');
-        $this->output->writeln("");
-        $this->output->writeln("Running <comment>drush @{$name} provision-verify</comment> ...");
-        $process = $this->getProcess("{$drush_path} @{$name} provision-verify");
-        $process->setTimeout(NULL);
-
-        if ($this->runProcess($process)) {
-            $this->output->writeln("");
-            $this->output->writeln("Running <comment>drush @{$name} provision-verify</comment>: <info>Done</info>");
-            $this->output->writeln("");
-        }
-        else {
-            $this->output->writeln("");
-            $this->output->writeln("<error>Unable to run drush @{$name} provision-verify.");
-            $this->output->writeln("");
-            exit(1);
         }
     }
+
+    //
+//        $data_export = var_export($data, TRUE);
+//        $output = <<<PHP
+//<?php
+///**
+// * @file
+// * An Aegir Context, written by the `devshop devmaster:install` command.
+// *
+// * Changes to this file will be overwritten on the next "provision-verify".
+// */
+//\$aliases['$name'] = $data_export;
+//
+//PHP;
+//
+//        // Determine home path and path to alias file.
+//        $drush_path = $this->input->getOption('drush-path');
+//        $home = $this->input->getOption('aegir_root');
+//        $path_to_alias_file = "{$home}/.drush/{$name}.alias.drushrc.php";
+//
+//        // Notify user.
+//        $this->output->writeln("Writing alias file {$path_to_alias_file}...");
+//        $this->output->writeln("<comment>$output</comment>");
+//
+//        // Dump to file
+//        $fs = new Filesystem();
+//        $fs->dumpFile($path_to_alias_file, $output);
+//        $this->output->writeln("<info>Done</info>");
+//
+//        // If this is hostmaster, we need to install first.  provision-verify will fail, otherwise.
+//        if ($install) {
+//            $client_email = $this->input->getOption('client_email');
+//            $this->output->writeln("");
+//            $this->output->writeln("Running <comment>{$drush_path} @{$name} provision-install --client_email={$client_email}</comment> ...");
+//            $process = $this->getProcess("{$drush_path} @{$name} provision-install --client_email={$client_email} -v");
+//            $process->setTimeout(NULL);
+//
+//            // Ensure process runs sucessfully.
+//            if ($this->runProcess($process)) {
+//                $this->output->writeln("");
+//                $this->output->writeln("Running <comment>drush @{$name} provision-install</comment>: <info>Done</info>");
+//                $this->output->writeln("");
+//            }
+//            else {
+//                $this->output->writeln("");
+//                $this->output->writeln("<error>Unable to run drush @{$name} provision-install.");
+//                $this->output->writeln("");
+//                exit(1);
+//            }
+//        }
+//
+//        // Run provision-verify
+//        $drush_path = $this->input->getOption('drush-path');
+//        $this->output->writeln("");
+//        $this->output->writeln("Running <comment>drush @{$name} provision-verify</comment> ...");
+//        $process = $this->getProcess("{$drush_path} @{$name} provision-verify");
+//        $process->setTimeout(NULL);
+//
+//        if ($this->runProcess($process)) {
+//            $this->output->writeln("");
+//            $this->output->writeln("Running <comment>drush @{$name} provision-verify</comment>: <info>Done</info>");
+//            $this->output->writeln("");
+//        }
+//        else {
+//            $this->output->writeln("");
+//            $this->output->writeln("<error>Unable to run drush @{$name} provision-verify.");
+//            $this->output->writeln("");
+//            exit(1);
+//        }
+//    }
 
     /**
      * Last steps:
