@@ -15,9 +15,9 @@
  * Generate a one-time login reset url
  */
 function drush_provision_drupal_provision_login_reset() {
-  // pass the login link to the front end
-  drush_set_option('browser', FALSE);
-  $onetime = drush_user_login();
-  drush_set_option('login_link', $onetime);
-  drush_log(dt('Login url: !onetime', array('!onetime' => $onetime)), 'success');
+  $uri = d()->redirection ?: d()->uri;
+  $result = drush_invoke_process(d()->name, 'user-login', array(), array('uri' => $uri, 'no-browser' => TRUE));
+
+  drush_set_option('login_link', $result['output']);
+  drush_log(dt('Login url: !onetime', array('!onetime' => $result['output'])), 'success');
 }
