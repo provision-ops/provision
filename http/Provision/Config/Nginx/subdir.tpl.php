@@ -1109,9 +1109,11 @@ location ^~ /<?php print $subdir; ?> {
     fastcgi_param db_host   <?php print urlencode($db_host); ?>;
     fastcgi_param db_port   <?php print urlencode($db_port); ?>;
 
-    fastcgi_param  HTTP_HOST           <?php print $this->uri; ?>;
+    fastcgi_param  HTTP_HOST           $host;
     fastcgi_param  RAW_HOST            $host;
     fastcgi_param  SITE_SUBDIR         <?php print $subdir; ?>;
+    fastcgi_param  SCRIPT_URL          /<?php print $subdir; ?>/;
+    fastcgi_param  SCRIPT_URI          $scheme://$host/<?php print $subdir; ?>/;
     fastcgi_param  MAIN_SITE_NAME      <?php print $this->uri; ?>;
 
     fastcgi_param  REDIRECT_STATUS     200;
@@ -1119,6 +1121,8 @@ location ^~ /<?php print $subdir; ?> {
 
     set $real_fastcgi_script_name index.php;
     fastcgi_param  SCRIPT_FILENAME     <?php print "{$this->root}"; ?>/$real_fastcgi_script_name;
+    fastcgi_param  SCRIPT_NAME         /<?php print $subdir; ?>/$real_fastcgi_script_name;
+    fastcgi_param  PHP_SELF            /<?php print $subdir; ?>/$real_fastcgi_script_name;
 
     add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
     tcp_nopush    off;

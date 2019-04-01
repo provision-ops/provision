@@ -366,8 +366,14 @@ function install_main() {
   $client_email = install_validate_client_email(drush_get_option('client_email', FALSE));
 
   $account = install_create_admin_user($client_email);
-  $onetime = user_pass_reset_url($account);
-  // Store the one time login link in an option so the front end can direct the user to their new site.
+
+  // If a redirect is defined, the symlink to the alias needs to exist before
+  // we generate the login link, below.
+  _provision_drupal_maintain_aliases();
+
+  // Store the one time login link in an option so the front end can direct the
+  // user to their new site.
+  $onetime = provision_generate_login_reset();
   drush_set_option('login_link', $onetime . '/login');
   drush_log(dt('Login url: !onetime', array('!onetime' => $onetime . '/login')), 'success');
 

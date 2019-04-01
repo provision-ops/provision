@@ -19,10 +19,10 @@ class Provision_Config_Drushrc_Alias extends Provision_Config_Drushrc {
   function __construct($context, $data = array()) {
     parent::__construct($context, $data);
 
-    if (is_array($data['aliases'])) {
+    if (isset($data['aliases']) && is_array($data['aliases'])) {
       $data['aliases'] = array_unique($data['aliases']);
     }
-    if (is_array($data['drush_aliases'])) {
+    if (isset($data['drush_aliases']) && is_array($data['drush_aliases'])) {
       $data['drush_aliases'] = array_unique($data['drush_aliases']);
     }
 
