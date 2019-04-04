@@ -1,3 +1,11 @@
+aegir3-provision (3.174) testing; urgency=medium
+
+  * Update to Hostmaster 7.x-3.174
+  * Include an updated ctools, views, module_filter
+  * Include a new Golden Contrib module: Hosting Deploy
+
+ -- Herman van Rink <helmo@initfour.nl>  Thu, 04 Apr 2019 15:48:32 +0200
+
 aegir3-provision (3.173) testing; urgency=medium
 
   * Update to Hostmaster 7.x-3.173 & Drupal 7.63.
