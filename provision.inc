@@ -442,7 +442,7 @@ function provision_backend_invoke($target, $drush_command, $arguments = array(),
   }
 
   return provision_process(implode(' ', $command), d($context)->site_path, 'Drush',
-    $env, t('Command failed.'));
+    $env, dt('Command failed.'));
 
 //  return drush_invoke_process($context, $command, $arguments, $data, array('method' => $mode, 'integrate' => TRUE, 'dispatch-using-alias' => TRUE));
 }
