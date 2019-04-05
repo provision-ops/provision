@@ -114,7 +114,7 @@ function drush_provision_drupal_pre_provision_verify() {
     // Re-set the ROOT PATH for Drush.
     // In cases where we just build the platform Drush would have cleared this value.
     // See Drush commit 3b74d40b1228f022464b92243c16127eb613c2df
-    drush_set_context('DRUSH_SELECTED_DRUPAL_ROOT', d()->root);
+    drush_set_context('DRUSH_SELECTED_DRUPAL_ROOT', d()->publish_path);
 
     drush_bootstrap(DRUSH_BOOTSTRAP_DRUPAL_ROOT);
     // If we couldn't bootstrap, there's no sense in continuing past this point.
@@ -125,11 +125,11 @@ function drush_provision_drupal_pre_provision_verify() {
       }
       return drush_set_error("DRUSH_INVALID_DRUPAL_ROOT",
         dt("Drush could not bootstrap the platform at @path. Please check the platform directory exists and is readable. The errors were: @errors", array(
-          '@path' => d()->root,
+          '@path' => d()->publish_path,
           '@errors' => implode('|', $errors)
         )));
     }
-    provision_file()->writable(d()->root . '/sites')
+    provision_file()->writable(d()->publish_path . '/sites')
       ->succeed('Drupal sites directory @path is writable by the provisioning script')
       ->fail('Drupal sites directory @path is not writable by the provisioning script', 'PROVISION_SITES_DIR_NOT_WRITABLE');
 
@@ -157,7 +157,7 @@ function drush_provision_drupal_pre_provision_verify() {
     _provision_drupal_create_settings_file();
 
     // If this is the hostmaster site, save the ~/.drush/drushrc.php file.
-    if (d()->root == d('@hostmaster')->root && d()->uri == d('@hostmaster')->uri) {
+    if (d()->publish_path == d('@hostmaster')->root && d()->uri == d('@hostmaster')->uri) {
       $aegir_drushrc = new Provision_Config_Drushrc_Aegir();
       $aegir_drushrc->write();
 

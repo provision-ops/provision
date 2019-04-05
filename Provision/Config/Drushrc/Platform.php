@@ -14,6 +14,6 @@ class Provision_Config_Drushrc_Platform extends Provision_Config_Drushrc {
   protected $mode = 0444;
 
   function filename() {
-    return $this->root . '/sites/all/drush/drushrc.php';
+    return $this->publish_path . '/sites/all/drush/drushrc.php';
   }
 }

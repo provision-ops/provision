@@ -1,4 +1,4 @@
-<Directory <?php print $this->root; ?>>
+<Directory <?php print $this->publish_path; ?>>
     Order allow,deny
     Allow from all
     Satisfy All
@@ -8,9 +8,9 @@
 
 
 <?php
-  if (is_readable("{$this->root}/.htaccess")) {
+  if (is_readable("{$this->publish_path}/.htaccess")) {
     print "\n# Include the platform's htaccess file\n";
-    print "Include {$this->root}/.htaccess\n";
+    print "Include {$this->publish_path}/.htaccess\n";
   }
 ?>
 
