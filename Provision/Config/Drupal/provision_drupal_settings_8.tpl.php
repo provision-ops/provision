@@ -23,6 +23,7 @@ print '<?php' ?>
  */
 if (isset($_SERVER['SITE_SUBDIR']) && isset($_SERVER['RAW_HOST'])) {
   $base_url = 'http://' . $_SERVER['RAW_HOST'] . '/' . $_SERVER['SITE_SUBDIR'];
+  ini_set('session.cookie_path', '/' . $_SERVER['SITE_SUBDIR'] . '/');
 }
 <?php endif; ?>
 
@@ -163,6 +164,7 @@ if (isset($_SERVER['db_name'])) {
   /**
    * Load services definition file.
    */
+  $settings['container_yamls'][] = __DIR__ . '/aegir.services.yml';
   $settings['container_yamls'][] = __DIR__ . '/services.yml';
 
   /**
@@ -181,6 +183,11 @@ if (isset($_SERVER['db_name'])) {
     '^localhost\.*',
     '\.local$',
   );
+
+  /**
+   * Set the Syslog identity to the site name so it's not always "drupal".
+   */
+  $config['syslog.settings']['identity'] = '<?php print $this->uri ?>';
 
 <?php print $extra_config; ?>
 

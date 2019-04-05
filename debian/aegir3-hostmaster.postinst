@@ -33,6 +33,9 @@ case "$1" in
         # this obviously doesn't work for git releases
         VERSION=`sed -n '/^version/{s/^.*= *//;p}' /usr/share/drush/commands/provision/provision.info`
 
+        # TODO: lookup? composer installs?
+        DRUSH_PATH="/usr/local/bin/drush"
+
         FLAGS="--yes"
         if [ "$DPKG_DEBUG" = "developer" ]; then
             FLAGS="$FLAGS --debug"
@@ -68,10 +71,10 @@ case "$1" in
         chown aegir:aegir "$AEGIRHOME" "$AEGIRHOME/config" "$AEGIRHOME/config/$WEBSERVER.conf"
 
         # flush the drush cache to find new commands
-        su -s /bin/sh aegir -c 'drush cache-clear drush'
+        su -s /bin/sh aegir -c "$DRUSH_PATH cache-clear drush"
 
-        site_uri=`su -s /bin/sh aegir -c 'drush @hostmaster status --fields="uri" --field-labels=0 2>/dev/null | tr "\n" " " | sed -e "s/^[[:space:]]*//g" -e "s/[[:space:]]*\$//g"'`
-        drupal_root=`su -s /bin/sh aegir -c 'drush @hostmaster status --fields="root" --field-labels=0 2>/dev/null | tr "\n" " " | sed -e "s/^[[:space:]]*//g" -e "s/[[:space:]]*\$//g"'`
+        site_uri=`su -s /bin/sh aegir -c "$DRUSH_PATH @hostmaster status --fields='uri' --field-labels=0 2>/dev/null | tr '\n' ' ' | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*\$//g'"`
+        drupal_root=`su -s /bin/sh aegir -c "$DRUSH_PATH @hostmaster status --fields='root' --field-labels=0 2>/dev/null | tr '\n' ' ' | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*\$//g'"`
 
         if [ -d "$drupal_root" ]; then
             # upgrade
@@ -95,14 +98,14 @@ case "$1" in
                 echo "it seems to be the same version as the one we're trying to install, not upgrading"
             else
                 echo "upgrading the frontend from $drupal_root to $NEW_PLATFORM"
-                if su -s /bin/sh aegir -c 'drush @hostmaster pm-list --status=enabled --pipe' | grep -q hosting_queued; then
+                if su -s /bin/sh aegir -c "$DRUSH_PATH @hostmaster pm-list --status=enabled --pipe" | grep -q hosting_queued; then
                     service hosting-queued stop
                 fi
                 cd "$drupal_root"
-                su -s /bin/sh aegir -c "drush hostmaster-migrate $FLAGS '$site_uri' '$NEW_PLATFORM'"
+                su -s /bin/sh aegir -c "$DRUSH_PATH hostmaster-migrate $FLAGS '$site_uri' '$NEW_PLATFORM'"
                 echo "upgrade finished, old platform left in $drupal_root"
                 # restart daemon if enabled
-                if su -s /bin/sh aegir -c 'drush @hostmaster pm-list --status=enabled --pipe' | grep -q hosting_queued; then
+                if su -s /bin/sh aegir -c "$DRUSH_PATH @hostmaster pm-list --status=enabled --pipe" | grep -q hosting_queued; then
                     service hosting-queued start
                 fi
             fi
@@ -173,7 +176,7 @@ case "$1" in
             fi
 
             # pass data through JSON for extra security
-            su -s /bin/sh aegir -c "cd $AEGIRHOME && drush hostmaster-install $FLAGS --backend $site_uri 2>&1 | drush backend-parse $DEBUG" <<EOF
+            su -s /bin/sh aegir -c "cd $AEGIRHOME && $DRUSH_PATH hostmaster-install $FLAGS --backend $site_uri 2>&1 | $DRUSH_PATH backend-parse $DEBUG" <<EOF
 { "yes": 1,
   "version": "$VERSION",
   "aegir_db_host": "$AEGIR_DB_HOST",
@@ -183,11 +186,11 @@ case "$1" in
 }
 EOF
             # flush the drush cache to find new commands
-            su -s /bin/sh aegir -c 'drush cache-clear drush'
+            su -s /bin/sh aegir -c "$DRUSH_PATH cache-clear drush"
 
             # on new installs, we default to having the daemon enabled
             echo 'Enabling hosting-queued daemon'
-            su -s /bin/sh aegir -c 'drush @hostmaster pm-enable -y hosting_queued'
+            su -s /bin/sh aegir -c "$DRUSH_PATH @hostmaster pm-enable -y hosting_queued"
             service hosting-queued start
             if [ -f /bin/systemctl ]; then
               # There must be a better way, but we're trying to stay compatible with Debian Wheezy and Jessie.
@@ -215,10 +218,10 @@ EOF
         esac
 
         # this will ensure that this script aborts if the site can't be bootstrapped
-        if su -s /bin/sh aegir -c 'drush @hostmaster status' 2>&1 | grep -q 'Drupal bootstrap.*Successful'; then
+        if su -s /bin/sh aegir -c "$DRUSH_PATH @hostmaster status" 2>&1 | grep -q 'Drupal bootstrap.*Successful'; then
             echo 'Aegir frontend bootstrap correctly, operation was a success!'
             echo 'Use this URL to login on your new site:'
-            su -s /bin/sh aegir -c 'drush @hostmaster uli'
+            su -s /bin/sh aegir -c "$DRUSH_PATH @hostmaster uli"
         else
             echo 'Aegir frontend failed to bootstrap, something went wrong!'
             echo 'Look at the log above for clues or run with DPKG_DEBUG=developer'

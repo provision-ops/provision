@@ -88,6 +88,11 @@ test:debian-stretch-aegir3-apt:
   dependencies:
     - build:deb
 
+  only:
+    - 7.x-3.x
+    - /^7\.x-3\.\d+\.x/
+    - /-runalltests$/
+
   before_script:
     - apt-get update
     # Avoid ERROR: invoke-rc.d: policy-rc.d denied execution of start.
@@ -96,6 +101,22 @@ test:debian-stretch-aegir3-apt:
     - apt-get install --yes sudo curl
 
   script: "scripts/ci-aegir-dev-install-apt-debian9.sh"
+
+test:debian-buster-aegir3-apt:
+  stage: test
+  image: debian:buster
+  allow_failure: false
+  dependencies:
+    - build:deb
+
+  before_script:
+    - apt-get update
+    # Avoid ERROR: invoke-rc.d: policy-rc.d denied execution of start.
+    - echo "#!/bin/sh" > /usr/sbin/policy-rc.d
+    - echo "exit 0" >> /usr/sbin/policy-rc.d
+    - apt-get install --yes sudo curl
+
+  script: "scripts/ci-aegir-dev-install-apt-debian10.sh"
 
 test:ubuntu-xenial-aegir3-apt:
   stage: test
@@ -117,27 +138,6 @@ test:ubuntu-xenial-aegir3-apt:
 
   script: "scripts/ci-aegir-dev-install-apt-ubuntu-xenial.sh"
 
-test:ubuntu-artful-aegir3-apt:
-  stage: test
-  image: ubuntu:artful
-  dependencies:
-    - build:deb
-
-  only:
-    - 7.x-3.x
-    - /^7\.x-3\.\d+\.x/
-    - /-runalltests$/
-
-  before_script:
-    - apt-get update
-    # Avoid ERROR: invoke-rc.d: policy-rc.d denied execution of start.
-    - echo "#!/bin/sh" > /usr/sbin/policy-rc.d
-    - echo "exit 0" >> /usr/sbin/policy-rc.d
-    - apt-get install --yes sudo curl
-
-  script: "scripts/ci-aegir-dev-install-apt-ubuntu-artful.sh"
-
-
 test:ubuntu-bionic-aegir3-apt:
   stage: test
   image: ubuntu:bionic
@@ -158,7 +158,7 @@ test:ubuntu-bionic-aegir3-apt:
 
   script: "scripts/ci-aegir-dev-install-apt-ubuntu-bionic.sh"
 
-test:debian-stretch-aegir3-cluster-slave-apt:
+test:cluster-slave-debian-stretch-apt:
   stage: test
   image: debian:stretch
   allow_failure: false
@@ -252,9 +252,9 @@ publish:unstable-repo:
 #
 
 # Upgrade the latest stable Aegir to our unstable repo.
-upgradetest:debian-jessie-aegir3-apt-upgrade:
+upgradetest:debian-stretch-aegir3-apt-upgrade:
   stage: upgradetest
-  image: debian:jessie
+  image: debian:stretch
   dependencies:
     - publish:unstable-repo
 
@@ -271,7 +271,7 @@ upgradetest:debian-jessie-aegir3-apt-upgrade:
     - apt-get install --yes sudo curl cron
 
   script:
-    - "scripts/ci-aegir-stable-install-apt-debian8.sh"
+    - "scripts/ci-aegir-stable-install-apt-debian9.sh"
     # extra step to run the task queue.
     - sudo su aegir --login --command 'drush @hostmaster php-eval "echo hosting_task_count();"'
     - sudo su aegir --login --command 'drush @hostmaster hosting-tasks --force'
@@ -283,6 +283,6 @@ upgradetest:debian-jessie-aegir3-apt-upgrade:
     - sudo su aegir --login --command 'drush @hostmaster php-eval "echo hosting_task_count_running();"'
     # upgrade to the latest version from the unstable repo.
     - rm -v /etc/apt/sources.list.d/aegir-stable.list
-    - echo "deb http://debian.aegirproject.org unstable main" | sudo tee -a /etc/apt/sources.list.d/aegir-unstable.list
+    - echo "deb [signed-by=/usr/share/keyrings/aegir-archive-keyring.gpg] http://debian.aegirproject.org unstable main" | sudo tee -a /etc/apt/sources.list.d/aegir-unstable.list
     - sudo apt-get update
     - sudo apt-get --yes dist-upgrade

@@ -23,6 +23,8 @@ print '<?php' ?>
  */
 if (isset($_SERVER['SITE_SUBDIR']) && isset($_SERVER['RAW_HOST'])) {
   $base_url = 'http://' . $_SERVER['RAW_HOST'] . '/' . $_SERVER['SITE_SUBDIR'];
+  $cookie_domain = "." . $_SERVER['RAW_HOST'];
+  ini_set('session.cookie_path', '/' . $_SERVER['SITE_SUBDIR'] . '/');
 }
 <?php endif; ?>
 
@@ -154,6 +156,11 @@ if (isset($_SERVER['db_name'])) {
   $conf['site_offline'] = 1;
 <?php endif; ?>
 <?php endif; ?>
+
+  /**
+   * Set the Syslog identity to the site name so it's not always "drupal".
+   */
+  $conf['syslog_identity'] = '<?php print $this->uri ?>';
 
 <?php print $extra_config; ?>
 

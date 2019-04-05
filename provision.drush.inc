@@ -491,3 +491,12 @@ function provision_hosting_feature_enabled($feature) {
   return array_key_exists($feature, $features) && $features[$feature];
 }
 
+/**
+ * Generate one-time login link
+ */
+function provision_generate_login_reset() {
+  $uri = d()->redirection ?: d()->uri;
+  $result = drush_invoke_process(d()->name, 'user-login', array(), array('uri' => $uri, 'no-browser' => TRUE));
+
+  return $result['output'];
+}
