@@ -125,7 +125,7 @@ class UiCreateCommand extends Command
 
             // aegir_db_pass
             ->addOption(
-                'aegir_db_pass', NULL, InputOption::VALUE_OPTIONAL,
+                'db_pass', NULL, InputOption::VALUE_OPTIONAL,
                 'The database password for the "db_user"',
                 'root'
             )
