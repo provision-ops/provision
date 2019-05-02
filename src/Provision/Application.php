@@ -159,7 +159,7 @@ class Application extends BaseApplication
         $commands[] = new StatusCommand();
         $commands[] = new VerifyCommand();
         $commands[] = new InstallCommand();
-        $commands[] = new UiCreateCommand();
+//        $commands[] = new UiCreateCommand();
 
         return $commands;
     }
