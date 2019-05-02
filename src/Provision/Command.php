@@ -36,7 +36,7 @@ abstract class Command extends BaseCommand
     /**
      * Set if this command is only for certain context types.
      */
-    const CONTEXT_REQUIRED_TYPES = [];
+    const CONTEXT_REQUIRED_TYPES = array();
 
     const CONTEXT_REQUIRED_QUESTION = 'Which context';
     /**

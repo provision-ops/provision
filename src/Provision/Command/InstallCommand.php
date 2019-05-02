@@ -29,7 +29,7 @@ class InstallCommand extends Command
      * This command needs a context.
      */
     const CONTEXT_REQUIRED = TRUE;
-    const CONTEXT_REQUIRED_TYPES = ['site'];
+    const CONTEXT_REQUIRED_TYPES = array('site');
     const CONTEXT_REQUIRED_QUESTION = 'Install which site';
 
     /**
