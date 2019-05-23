@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fadbb0498d6d01df67a2c4dbf94eca41",
+    "content-hash": "e98c1389850cf90e7880c8c148f3cfd7",
     "packages": [
         {
             "name": "consolidation/annotated-command",
@@ -1481,7 +1481,7 @@
         },
         {
             "name": "provision-ops/yaml-tests",
-            "version": "1.1.4",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/provision-ops/yaml-tests.git",
@@ -3858,7 +3858,8 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "consolidation/robo": 20
+        "consolidation/robo": 20,
+        "provision-ops/yaml-tests": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
