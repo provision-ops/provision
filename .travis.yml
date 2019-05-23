@@ -49,6 +49,7 @@ install:
   - ls -la
 
 script:
+  - composer yaml-tests
 
   # @TODO: Set non-interactive globally
   - provision -n -v
