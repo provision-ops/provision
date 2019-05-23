@@ -10,6 +10,7 @@
         "consolidation/annotated-command": "~2",
         "drupal/console-core": "1.0.2",
         "drush/drush": "8.x",
+        "provision-ops/yaml-tests": "^1.1",
         "psr/log": "^1.0",
         "psy/psysh": "^0.8.11",
         "symfony/console": "^3.2",
@@ -41,12 +42,15 @@
         "bin-dir": "bin/",
         "sort-packages": true,
         "platform": {
-            "php": "5.5.9"
+            "php": "7.0.8"
         }
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "autoload": {
         "psr-4": {"Aegir\\Provision\\": "src/Provision"}
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.8"
     }
 }
