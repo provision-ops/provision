@@ -1485,12 +1485,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/provision-ops/yaml-tests.git",
-                "reference": "a0c5a8ee480a54ac0cb0f9d5591ee0750fd49afd"
+                "reference": "483c31c98fc23a84d5705e7e9d5d5eb3e1624bf5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/provision-ops/yaml-tests/zipball/a0c5a8ee480a54ac0cb0f9d5591ee0750fd49afd",
-                "reference": "a0c5a8ee480a54ac0cb0f9d5591ee0750fd49afd",
+                "url": "https://api.github.com/repos/provision-ops/yaml-tests/zipball/483c31c98fc23a84d5705e7e9d5d5eb3e1624bf5",
+                "reference": "483c31c98fc23a84d5705e7e9d5d5eb3e1624bf5",
                 "shasum": ""
             },
             "require": {
@@ -1523,7 +1523,7 @@
                 }
             ],
             "description": "Plugin to run commands from a YML file and pass to GitHub commit status API.",
-            "time": "2019-05-23T22:31:09+00:00"
+            "time": "2019-05-23T23:11:07+00:00"
         },
         {
             "name": "psr/container",
