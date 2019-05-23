@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e98c1389850cf90e7880c8c148f3cfd7",
+    "content-hash": "2354da1e30f6b03404934c2f1d90cd78",
     "packages": [
         {
             "name": "consolidation/annotated-command",
@@ -1481,16 +1481,16 @@
         },
         {
             "name": "provision-ops/yaml-tests",
-            "version": "dev-master",
+            "version": "1.1.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/provision-ops/yaml-tests.git",
-                "reference": "c38c857cf7551b6f928dfdb630526b74f3167318"
+                "reference": "0c5585ce804c8276dd7c225479cec4fd2dece39c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/provision-ops/yaml-tests/zipball/c38c857cf7551b6f928dfdb630526b74f3167318",
-                "reference": "c38c857cf7551b6f928dfdb630526b74f3167318",
+                "url": "https://api.github.com/repos/provision-ops/yaml-tests/zipball/0c5585ce804c8276dd7c225479cec4fd2dece39c",
+                "reference": "0c5585ce804c8276dd7c225479cec4fd2dece39c",
                 "shasum": ""
             },
             "require": {
@@ -1523,7 +1523,7 @@
                 }
             ],
             "description": "Plugin to run commands from a YML file and pass to GitHub commit status API.",
-            "time": "2019-05-23T21:28:54+00:00"
+            "time": "2019-05-23T21:51:24+00:00"
         },
         {
             "name": "psr/container",
@@ -3858,8 +3858,7 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "consolidation/robo": 20,
-        "provision-ops/yaml-tests": 20
+        "consolidation/robo": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
