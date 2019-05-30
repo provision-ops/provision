@@ -1,0 +1,9 @@
+lint:
+  command: composer lint
+  description: PHP Lint (Syntax Check)
+phpunit:
+  command: phpunit tests --colors=always
+  description: PHPUnit Tests
+phpcs:
+  command: phpcs --standard=PSR2 -n src
+  description: PHP Code Sniffer

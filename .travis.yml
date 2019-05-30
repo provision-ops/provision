@@ -1,7 +1,7 @@
 language: php
 php:
-  - '5.5'  # Ubuntu Trusty default
-  - '5.6'  # MacOS default
+  # - '5.5'  # Ubuntu Trusty default
+  # - '5.6'  # MacOS default
   - '7.0'
   - '7.1'
 
@@ -43,12 +43,13 @@ before_install:
   - 'echo "contexts_path: /home/travis/config/contexts" >> ~/.provision.yml'
 
 install:
-  - composer install
+  - composer install --ansi
   - sudo ln -s $PWD/bin/provision /usr/local/bin/provision
   - mkdir /home/travis/config/contexts -p
   - ls -la
 
 script:
+  - composer yaml-tests --ansi
 
   # @TODO: Set non-interactive globally
   - provision -n -v
