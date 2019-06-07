@@ -65,6 +65,7 @@ build:deb:
 test:debian-jessie-aegir3-apt:
   stage: test
   image: debian:jessie
+  allow_failure: true
   dependencies:
     - build:deb
   only:
