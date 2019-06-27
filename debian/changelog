@@ -1,3 +1,10 @@
+aegir3-provision (3.180) unstable; urgency=medium
+
+  * Bugfixes and UI improvements, see http://aegir.readthedocs.org/en/3.x/release-notes/3.18
+  * Include Drupal 7.67
+
+ -- Colan Schwartz <13228-colan@users.noreply.gitlab.com>  Thu, 27 Jun 2019 15:27:28 -0400
+
 aegir3-provision (3.174) testing; urgency=medium
 
   * Update to Hostmaster 7.x-3.174
