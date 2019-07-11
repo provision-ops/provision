@@ -9,9 +9,14 @@ function drush_provision_drupal_pre_provision_delete($backup_file = NULL) {
     if (!empty($backup_file) && !strpos($backup_file, '/')) {
       drush_set_error('PROVISION_DELETE_BACKUP_NAME_RELATIVE', dt('The passed backup name is a relative path, storing that in the site directory which is going to be deleted is probably not intended. Try an absolute name, or no name to let one be generated.'));
     }
-    else {
+    // If site database exists and is boostrappad, run a backup.
+    elseif (drush_bootstrap_max() == DRUSH_BOOTSTRAP_DRUPAL_DATABASE) {
+      drush_log(dt('Invoking drush provision-backup...'));
       drush_invoke("provision-backup", $backup_file);
       drush_unset_option('force', 'process');
+    }
+    else {
+      drush_log(dt('Warning: A site backup was not made because a site database was not found.'), 'warning');
     }
   }
 }
