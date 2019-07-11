@@ -108,7 +108,9 @@ function provision_drupal_push_site($override_slave_authority = FALSE) {
   ));
 
   // Sync the platform
-  d()->service('http')->sync(d()->root, array('exclude-sites' => TRUE));
+  $sync_path = d()->root;
+  drush_command_invoke_all_ref('provision_platform_sync_path_alter', $sync_path, d());
+  d()->service('http')->sync($sync_path, array('exclude-sites' => TRUE));
 
   if (d()->type === 'site') {
     // Check whether we're hosted on a cluster, in which case, the master is
