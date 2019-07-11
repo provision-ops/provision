@@ -593,6 +593,16 @@ function _provision_drupal_find_modules($scope, $key = '') {
       $source = file_get_contents(trim($install_file));
       $source = str_replace("\r\n", "\n", $source);
       $source = str_replace("\r", "\n", $source);
+      // Also search included files for function signature
+      $include_matches = array();
+      preg_match_all('!^\s*(include|require)(_once)?[\s\.\w\(]+([\'\"]{1}([\\\s\w\-\.\/]*)[\'\"]{1})!m', $source, $include_matches);
+      if (sizeof($include_matches[0])) {
+        foreach($include_matches[4] as $include) {
+          if ($include_file = realpath(dirname($info->filename) . DIRECTORY_SEPARATOR . $include)) {
+            $source .= "\n" . file_get_contents($include_file);
+          }
+        }
+      }
       $function_matches = array();
         preg_match_all('!function\s*&?([a-zA-Z0-9_]+)_update_([0-9]+)\s*\(.*?\s*\{!', $source, $function_matches);
 
