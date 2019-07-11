@@ -50,7 +50,9 @@
  *
  * provision_composer_install_command
  *
- *   The full command to run during platform verify.
+ *   The full command to run during platform verify. Platforms can override this by editing the
+ *   'composer_install_command' property.
+ *
  *   Default is 'composer install --no-interaction --no-progress --no-dev'
  *
  */
