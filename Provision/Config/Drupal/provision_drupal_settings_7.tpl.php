@@ -174,6 +174,11 @@ if (isset($_SERVER['db_name'])) {
     include_once('<?php print $this->platform->root ?>/sites/all/platform.settings.php');
   }
 
+  # Additional platform wide configuration settings.
+  if (is_readable('<?php print $this->platform->root  ?>/sites/all/settings.php')) {
+    include_once('<?php print $this->platform->root ?>/sites/all/settings.php');
+  }
+
   # Additional site configuration settings.
   if (is_readable('<?php print $this->site_path  ?>/local.settings.php')) {
     include_once('<?php print $this->site_path  ?>/local.settings.php');
