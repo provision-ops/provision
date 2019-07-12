@@ -129,6 +129,12 @@ class Provision_Service_db extends Provision_Service {
     }
     extract($creds);
 
+    // Do not attempt to continue if there is no db name.
+    if (empty($db_name)) {
+      drush_log(dt("Unable to destoy the database because the database name is unknown.", array('@dbname' => $db_name)), 'warning');
+      return;
+    }
+
     if ( $this->database_exists($db_name) ) {
       drush_log(dt("Dropping database @dbname", array('@dbname' => $db_name)));
       if (!$this->drop_database($db_name)) {
