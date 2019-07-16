@@ -124,7 +124,7 @@ function drush_provision_drupal_pre_provision_verify() {
         $error = "$type: {$error[0]}";
       }
       return drush_set_error("DRUSH_INVALID_DRUPAL_ROOT",
-        dt("A Drupal codebase was not found in @path. Please check that the directory exists and Drupal's index.php file is present. The errors were: @errors", array(
+        dt("A Drupal codebase was not found in @path. Please check that the directory exists and Drupal's index.php file is present. Check the Publish Path of the platform and try again. The errors were: @errors", array(
           '@path' => d()->root,
           '@errors' => implode('|', $errors)
         )));
