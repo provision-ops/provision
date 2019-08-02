@@ -25,16 +25,21 @@ function drush_provision_drupal_provision_install_validate() {
 
       drush_log(dt('Forcing reinstall...'), 'ok');
 
-      // Load the current database name from drushrc.php.
-      // I cannot find another way to find the current db_name!
-      require_once(d()->site_path . '/drushrc.php');
-      $old_db_name = $options['db_name'];
+      // Drop the database if we can figure out what it is.
+      // If last install failed, the database and the site folder is deleted.
+      if (file_exists(d()->site_path . '/drushrc.php')) {
 
-      if (d()->service('db')->database_exists($old_db_name)) {
-        d()->service('db')->drop_database($old_db_name);
-        drush_log(dt('Dropped database @database.', array(
-          '@database' => $old_db_name,
-        )), 'ok');
+        // Load the current database name from drushrc.php.
+        // I cannot find another way to find the current db_name!
+        require_once(d()->site_path . '/drushrc.php');
+        $old_db_name = $options['db_name'];
+
+        if (d()->service('db')->database_exists($old_db_name)) {
+          d()->service('db')->drop_database($old_db_name);
+          drush_log(dt('Dropped database @database.', array(
+            '@database' => $old_db_name,
+          )), 'ok');
+        }
       }
 
       // Destroy site_path.
@@ -46,7 +51,9 @@ function drush_provision_drupal_provision_install_validate() {
 
     // Check again if site does not exist after the forced reinstall.
     if (_provision_drupal_site_exists()) {
-      return drush_set_error('PROVISION_SITE_INSTALLED');
+      return drush_set_error('PROVISION_SITE_INSTALLED',  dt('The file !file still exists. Provision was unable to delete it.', array(
+        '!file' => d()->site_path . '/settings.php',
+      )));
     }
   }
 }
