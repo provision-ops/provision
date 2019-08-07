@@ -647,6 +647,9 @@ function provision_parse_info_file($filename) {
  * The real credentials are stored in the Apache vhost of the relevant site, to prevent leaking of
  * sensitive data to site administrators with PHP access who might otherwise access such credentials
  * potentially of other sites' settings.php in a multisite set-up.
+ *
+ * Fire hook_provision_prepare_environment() so other scripts can react to this
+ * step and add more information or take other actions.
  */
 function provision_prepare_environment() {
   $fields = array('db_type', 'db_host', 'db_user', 'db_passwd', 'db_name', 'db_port');
@@ -658,6 +661,11 @@ function provision_prepare_environment() {
   if (drush_drupal_major_version() >= 7) {
     $_SERVER['db_type'] = ($_SERVER['db_type'] == 'mysqli') ? 'mysql' : $_SERVER['db_type'];
   }
+
+  // Invoke provision_prepare_environment: Allow other scripts to react to the
+  // preparation of the environment variables.
+  drush_command_invoke_all('provision_prepare_environment');
+
 }
 
 
