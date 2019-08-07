@@ -418,3 +418,34 @@ function hook_provision_mysql_regex_alter(&$regexes) {
     '#/\*!50001 CREATE ALGORITHM=UNDEFINED \*/#' => "/*!50001 CREATE */",
   );
 }
+
+/**
+ * Implements hook_provision_prepare_environment()
+ *
+ * React to the setting up of $_SERVER variables such as db_name and db_passwd.
+ *
+ * Runs right after writing sites/$URI/drushrc.php.
+ * Database credentials are available in the $_SERVER variables.
+ *
+ * @see provision_prepare_environment()
+ */
+function hook_provision_prepare_environment() {
+
+  // Write a .env file in the root of the project with the Drupal DB credentials.
+  // This file could be used by other tools to access the site's database.
+  $file_name = d()->root . '/.env';
+  $file_contents = <<<ENV
+MYSQL_DATABASE={$_SERVER['db_name']}
+MYSQL_USER={$_SERVER['db_name']}
+MYSQL_PASSWORD={$_SERVER['db_name']}
+ENV;
+
+  // Make writable, then write the file.
+  if (file_exists($file_name) && !is_writable($file_name)) {
+    provision_file()->chmod($file_name, 0660);
+  }
+  file_put_contents($file_name, $file_contents);
+
+  // Hide sensitive information from any other users.
+  provision_file()->chmod($file_name, 0400);
+}
