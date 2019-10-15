@@ -123,7 +123,7 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
         OutputInterface $output = NULL
     ) {
     
-        $logger = new Logger('provision');
+        $logger = new \Aegir\Provision\Console\Logger('provision');
         $this->setLogger($logger);
         
         $this
@@ -154,7 +154,7 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
         $this->runner->setSelfUpdateRepository(self::REPOSITORY);
     
         $this->setBuilder($container->get('builder'));
-        $this->setLogger($container->get('logger'));
+//        $this->setLogger($container->get('logger'));
         
         $this->tasks = $container->get('tasks');
         $this->console = new ConsoleOutput($output->getVerbosity());

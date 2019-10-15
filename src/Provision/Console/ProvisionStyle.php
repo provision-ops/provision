@@ -4,6 +4,7 @@ namespace Aegir\Provision\Console;
 
 use Aegir\Provision\Provision;
 use Drupal\Console\Core\Style\DrupalStyle;
+use Monolog\Handler\StreamHandler;
 use Robo\Common\InputAwareTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -113,6 +114,9 @@ class ProvisionStyle extends DrupalStyle {
         if (!is_array($messages)) {
             $messages = [$messages];
         }
+
+        // @TODO: Use one or both based on config.
+        Provision::getProvision()->getLogger()->pushHandler(new LogHandler());
         Provision::getProvision()->getLogger()->console(implode("\n", $messages));
     }
 
