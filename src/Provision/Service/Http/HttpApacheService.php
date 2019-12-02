@@ -95,6 +95,7 @@ class HttpApacheService extends HttpService
         $options[] = '/private/etc/apache2/other';
         $options[] = '/etc/apache/conf.d';
         $options[] = '/etc/apache2/conf.d';
+        $options[] = '/etc/apache2/conf-enabled';
         $options[] = '/etc/httpd/conf.d';
 
         foreach ($options as $test) {
