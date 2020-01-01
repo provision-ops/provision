@@ -43,8 +43,8 @@ class SaveCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('save')
-            ->setAliases(['add'])
+            ->setName('context:save')
+            ->setAliases(['add', 'save'])
             ->setDescription('Create or update a site, platform, or server.')
             ->setHelp(
                 'Use this command to interactively setup a new site, platform or server (known as "contexts"). Metadata is saved to .yml files in the "config_path" folder. Once you have create a context, use the `provision status` command to view the list of added contexts.'
@@ -144,14 +144,55 @@ class SaveCommand extends Command
 
             $this->newContext = TRUE;
 
-            // If context_type is still empty, throw an exception. Happens if using -n
+            // If context_type is not specified,..
             if (empty($context_type)) {
-                throw new \Exception('Option --context_type must be specified.');
+                // If user is interactive...
+                if ($input->isInteractive()){
+
+                    // If name is not set, ask for it.
+                    if (empty($this->context_name)) {
+                        while (empty($this->context_name)) {
+                            $this->context_name = $this->io->ask('Context Name:', '', function ($value) {
+                                if (empty($value)) {
+                                    $this->io->error('You must specify a context name.');
+                                }
+                                else {
+                                  return $value;
+                                }
+                            });
+                        }
+
+                        $this->input->setOption('context', $this->context_name);
+                    }
+
+                    // If there are no contexts at all, default to "server".
+                    $contexts = $this->getProvision()->getAllContexts();
+                    if (count($contexts) == 0) {
+                        // @TODO: This is the onboarding moment for CLI users.
+                        $context_type = 'server';
+                        $this->io->note('No contexts exist yet. First one must be a server.');
+                    }
+
+                    // If there are other contexts, ask what type the user wants to create.
+                    else {
+                        $context_type = $this->io->choice('What do you want to create?', Context::getContextTypeOptions());
+                    }
+
+                    // Save option to $input.
+                    $input->setOption('context_type', $context_type);
+                }
+                else {
+                    // Not interactive: --context_type is required.
+                    throw new \Exception('Option --context_type must be specified.');
+                }
             }
             else {
                 $this->input->setOption('context_type', $context_type);
+                if (empty($this->context_name)) {
+                    throw new \Exception('No context name set. You must use the --context option when running non-interactively.');
+                }
             }
-    
+
             // Handle invalid context_type.
             if (!class_exists(Context::getClassName($context_type))) {
                 $types = Context::getContextTypeOptions();
@@ -314,7 +355,7 @@ class SaveCommand extends Command
      * Override  to add options
      * @param string $question
      */
-    public function askForContext($question = 'Choose a context')
+    public function askForContext($question = 'Choose a context', $context_types = array())
     {
         $options = $this->getProvision()->getAllContextsOptions();
 

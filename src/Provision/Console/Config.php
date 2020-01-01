@@ -152,21 +152,22 @@ class Config extends ProvisionConfig
 
         // @TODO: Ensure that web_user exists. Right now all that matters is web_user_uid
 
-        // Ensure that script user is a member of web user group.
-        if (!$this->isUserInWebGroup($this->get('web_user_uid'))) {
-
-            $this->io()->warningLite("Your user is not in the web group.");
-            $this->io()->helpBlock([
-                "To add your user to the web user group, run one of the following commands:",
-                "",
-                "    mac: sudo dseditgroup -o edit -a {$this->get('script_user')} -t user {$this->get('web_user')}",
-                "    linux: sudo usermod -aG {$this->get('web_user')} {$this->get('script_user')}",
-            ]);
-
-          throw new InvalidOptionException(
-            "The current user ({$this->get('script_user')}) is not in the group '{$this->get('web_user')}' [{$this->get('web_user_uid')}]. Please add your user '{$this->config->get('script_user')}' to the group '{$this->get('web_user')}' or change the web_user or web_user_uid values in the file {{$this->get('console_config_file')}}.}"
-          );
-        }
+      // @TODO: Only invoke this if running on a server using local web server.
+//        // Ensure that script user is a member of web user group.
+//        if (!$this->isUserInWebGroup($this->get('web_user_uid'))) {
+//
+//            $this->io()->warningLite("Your user is not in the web group.");
+//            $this->io()->helpBlock([
+//                "To add your user to the web user group, run one of the following commands:",
+//                "",
+//                "    mac: sudo dseditgroup -o edit -a {$this->get('script_user')} -t user {$this->get('web_user')}",
+//                "    linux: sudo usermod -aG {$this->get('web_user')} {$this->get('script_user')}",
+//            ]);
+//
+//          throw new InvalidOptionException(
+//            "The current user ({$this->get('script_user')}) is not in the group '{$this->get('web_user')}' [{$this->get('web_user_uid')}]. Please add your user '{$this->config->get('script_user')}' to the group '{$this->get('web_user')}' or change the web_user or web_user_uid values in the file {{$this->get('console_config_file')}}.}"
+//          );
+//        }
 
     }
 

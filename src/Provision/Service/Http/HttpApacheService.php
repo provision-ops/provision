@@ -8,6 +8,8 @@
 
 namespace Aegir\Provision\Service\Http;
 
+use Aegir\Provision\Provision;
+use Aegir\Provision\Service\Http\Apache\ApacheNotFoundException;
 use Aegir\Provision\Service\Http\Apache\Configuration\PlatformConfigFile;
 use Aegir\Provision\Service\Http\Apache\Configuration\ServerConfigFile;
 use Aegir\Provision\Service\Http\Apache\Configuration\SiteConfigFile;
@@ -34,6 +36,7 @@ class HttpApacheService extends HttpService
   {
     $configs['server'][] = ServerConfigFile::class;
     $configs['platform'][] = PlatformConfigFile::class;
+    $configs['site'][] = PlatformConfigFile::class;
     $configs['site'][] = SiteConfigFile::class;
     return $configs;
   }
@@ -43,14 +46,21 @@ class HttpApacheService extends HttpService
      * @return string
      */
     static function default_restart_cmd() {
-        $command = self::getApacheExecutable();
-        return "sudo $command graceful";
+        // We have to catch the missing apache exception because this might run before we care if it is there.
+        try {
+            $command = self::getApacheExecutable();
+            return "sudo $command graceful";
+        }
+        catch (ApacheNotFoundException $e) {
+            return "";
+        }
     }
 
     /**
      * Determine apache command based on available executables.
      *
      * @return mixed|string
+     * @throws \Aegir\Provision\Service\Http\Apache\ApacheNotFoundException
      */
     public static function getApacheExecutable() {
         $command = '/usr/sbin/apachectl'; // A proper default for most of the world
@@ -69,6 +79,8 @@ class HttpApacheService extends HttpService
                 return $test;
             }
         }
+
+        throw new ApacheNotFoundException($options);
     }
 
     /**
@@ -166,7 +178,7 @@ $full_error
 ");
                     }
                     else {
-                        throw new \Exception('EXCEPTION!!!' . $e->getMessage(), NULL, $e);
+                        throw new \Exception($e->getMessage(), NULL, $e);
                     }
                 }
 

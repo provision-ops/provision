@@ -6,7 +6,6 @@ use Aegir\Provision\Console\Config;
 use Aegir\Provision\ServiceProvider;
 use Aegir\Provision\Property;
 use Aegir\Provision\Provision;
-use Aegir\Provision\Service\DockerServiceInterface;
 use Psr\Log\LogLevel;
 use Robo\ResultData;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -66,6 +65,11 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
     static function option_documentation()
     {
         return [
+            'context_class' => Provision::newProperty()
+                ->description('The name of the class to load for this context.')
+                ->hidden()
+                ->defaultValue(self::getClassName(self::TYPE))
+            ,
             'remote_host' =>
                 Provision::newProperty()
                     ->description('server: host name')
@@ -79,6 +83,21 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
                         }
                         return $remote_host;
                   }),
+            'ip_addresses' =>
+                Provision::newProperty()
+                    ->description('server: IP Addresses')
+                    ->required(FALSE)
+                    ->validate(function($ip_addresses) {
+                        $ips = explode(',', $ip_addresses);
+                        foreach ($ips as $ip) {
+                            // If remote_host doesn't resolve to anything, warn the user.
+                            if (!ServerContext::valid_ip($ip)) {
+                                throw new \RuntimeException("IP $ip is invalid.");
+                            }
+                        }
+                        // @TODO: Figure out how to allow array values in service configs.
+                        return implode(',', $ips);
+                    }),
             'script_user' =>
                 Provision::newProperty()
                     ->description('server: OS user name')
@@ -105,12 +124,15 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
     }
 
     /**
-     * @return array
+     * Check if a hostname provided is an ip address.
+     *
+     * @param string $hostname
+     *   The hostname to check.
+     *
+     * @return bool
+     *   TRUE is the $hostname is a valid IP address, FALSE otherwise.
      */
-    public function verify()
-    {
-        // Create the server/service directory. We put this here because we need to make sure this is always run before any other tasks.
-        Provision::fs()->mkdir($this->server_config_path);
-        return [];
+    static function valid_ip($hostname) {
+      return is_string(inet_pton($hostname));
     }
 }

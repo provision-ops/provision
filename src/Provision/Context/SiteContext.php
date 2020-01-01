@@ -22,6 +22,7 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
     public $type = 'site';
     const TYPE = 'site';
 
+    const FORCE_VERBOSE_INSTALL = TRUE;
     /**
      * @var \Aegir\Provision\Context\PlatformContext
      */
@@ -70,6 +71,43 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
         // @TODO: check for other sites with the URI.
         $options['uri'] = Provision::newProperty()
             ->description('site: example.com URI, no http:// or trailing /')
+        ;
+        $options['aliases'] = Provision::newProperty()
+            ->description('site: comma-separated URIs')
+            ->defaultValue('')
+            ->required(FALSE)
+        ;
+        $options['redirection'] = Provision::newProperty()
+            ->description('site: boolean for whether domain aliases should redirect to the primary domain; default false')
+            ->defaultValue(FALSE)
+            ->required(FALSE)
+        ;
+        $options['https_enabled'] = Provision::newProperty()
+            ->description('site: Enable HTTPS')
+            ->defaultValue(FALSE)
+            ->required(FALSE)
+        ;
+
+        // @TODO: Use this use case to develop a plugin system.
+        $options['http_basic_auth_username'] = Provision::newProperty()
+            ->description('site: Basic authentication username')
+            ->defaultValue('')
+            ->required(FALSE)
+        ;
+        $options['http_basic_auth_password'] = Provision::newProperty()
+            ->description('site: Basic authentication password')
+            ->defaultValue('')
+            ->required(FALSE)
+        ;
+        $options['http_basic_auth_message'] = Provision::newProperty()
+            ->description('site: Basic authentication message')
+            ->defaultValue('')
+            ->required(FALSE)
+        ;
+        $options['http_basic_auth_whitelist'] = Provision::newProperty()
+            ->description('site: Basic authentication grant list. Allows access from these IPs.')
+            ->defaultValue('')
+            ->required(FALSE)
         ;
 
         $options['platform'] = Provision::newProperty()
@@ -127,6 +165,7 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
 
         $steps = parent::verify();
 
+        // @TODO: These should be in a step. Maybe in runSteps()
         $this->getProvision()->io()->customLite($this->getProperty('uri'), 'Site URL: ', 'info');
         $this->getProvision()->io()->customLite($this->getProperty('root'), 'Root: ', 'info');
         $this->getProvision()->io()->customLite($this->config_path, 'Configuration File: ', 'info');
@@ -155,7 +194,8 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
 //                ->chgrp("$path/sites/$uri/files", $this->getServices('http')->getProperty('web_group'))
 
                 /**
-                 * This way is quiet.
+                 * @TODO: Break this up into chunks. People would like to see "setting file permissions" and "creating settings file"
+                 * @TODO: Create subclasses. This is only the site.prepare task for Drupal sites.
                  *
                  * @see verify.provision.inc
                  * @see drush_provision_drupal_pre_provision_verify()
@@ -201,68 +241,87 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
                     $this->fs->chgrp($dir, $user);
 
                     // Copy Drupal's default settings.php file into place.
-                    if (!file_exists("$site_path/settings.php")) {
+                    if (!$this->fs->exists("$site_path/settings.php")) {
                         $this->fs->copy("$docroot/sites/default/default.settings.php", "$site_path/settings.php");
                     }
 
                     $this->fs->chmod("$site_path/settings.php", 02770);
                     $this->fs->chgrp("$site_path/settings.php", $this->getProvision()->getConfig()->get('web_user'));
 
-
-                    if (strpos(file_get_contents("$site_path/settings.php"), "// PROVISION SETTINGS") === FALSE) {
-
-                      $hash_salt = self::randomBytesBase64(55);
-
-                        // @TODO: This is only true for Drupal version 7.50 and up. See Provision/Config/Drupal/Settings.php
-                            // We are treading more and more into the Drupal-only world, so I'm leaving this hard coded to TRUE until we develop something else.
-                    $database_settings = <<<PHP
-                        
-// PROVISION SETTINGS
-\$databases['default']['default'] = array(
-    'driver' => \$_SERVER['db_type'],
-    'database' => \$_SERVER['db_name'],
-    'username' => \$_SERVER['db_user'],
-    'password' => \$_SERVER['db_passwd'],
-    'host' => \$_SERVER['db_host'],
-    /* Drupal interprets \$databases['db_port'] as a string, whereas Drush sees
-     * it as an integer. To maintain consistency, we cast it to a string. This
-     * should probably be fixed in Drush.
-     */
-    'port' => (string) \$_SERVER['db_port'],
-    'charset' => 'utf8mb4',
-    'collation' => 'utf8mb4_general_ci',
-  );
-
-\$db_url['default'] = \$_SERVER['db_type'] . '://' . \$_SERVER['db_user'] . ':' . \$_SERVER['db_passwd'] . '@' . \$_SERVER['db_host'] . ':' . \$_SERVER['db_port'] . '/' . \$_SERVER['db_name'];
-
-\$settings['hash_salt'] = '$hash_salt';
-
-PHP;
-                    $this->fs->appendToFile("$site_path/settings.php", $database_settings);
-                }
             });
-
-        // FROM verify.provision.inc  drush_provision_drupal_pre_provision_verify() line 118
-//        drush_set_option('packages', _scrub_object(provision_drupal_system_map()), 'site');
-//        // This is the actual drupal provisioning requirements.
-//        _provision_drupal_create_directories();
-//        _provision_drupal_maintain_aliases();
-//        _provision_drupal_ensure_htaccess_update();
-//        // Requires at least the database settings to complete.
-//
-//        _provision_drupal_create_settings_file();
-//
-//        // If this is the hostmaster site, save the ~/.drush/drushrc.php file.
-//        if (d()->root == d('@hostmaster')->root && d()->uri == d('@hostmaster')->uri) {
-//            $aegir_drushrc = new Provision_Config_Drushrc_Aegir();
-//            $aegir_drushrc->write();
-//        }
-//
-//        provision_drupal_push_site(drush_get_option('override_slave_authority', FALSE));
-//
         return $steps;
     }
-    
+
+    /**
+     * Steps needed for the 'provision install' command.
+     *
+     * @TODO: Make this the Drupal Subclass.
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function install() {
+
+        $site = $this;
+        $service = $site->getSubscription('db');
+        $server = $service->server->getProperty('remote_host');
+        $root = $site->getProperty('root');
+        $document_root = $site->getProperty('document_root_full');
+        $site_dir = str_replace('sites/', '', $site->getProperty('site_path'));
+
+        // @TODO: Figure out a better way to run a drush command.
+        // @TODO: Create better system to detect the proper install method: Site local drush 9, provision/drush 8?
+
+        if (file_exists("{$root}/bin/drush")) {
+            $drush = realpath("{$root}/bin/drush");
+        }
+        elseif (file_exists("{$root}/vendor/bin/drush")) {
+            $drush = realpath("{$root}/vendor/bin/drush");
+        }
+        elseif (file_exists(__DIR__ . '/../../../bin/drush')) {
+            $drush = realpath(__DIR__ . '/../../../bin/drush');
+        }
+        else {
+            throw new \Exception('Unable to drush in your site. Please install drush into your codebase or (COMING SOON) specify an alternate install command in your provision.yml file.');
+        }
+
+        $command = $this->getProvision()->getTasks()->taskExec($drush)
+            ->arg('site-install')
+            ->arg($this->getProperty('profile'))
+            ->silent(!$this->getProvision()->getOutput()->isVerbose())
+        ;
+
+        // @TODO: Add getDbUrl() method to make this easier.
+        $command->arg("--db-url=mysql://{$service->getProperty('db_user')}:{$service->getProperty('db_password')}@{$server}:{$service->server->getService('db')->getProperty('db_port')}/{$service->getProperty('db_name')}");
+
+        $command->arg("--root={$document_root}");
+        $command->arg("--sites-subdir={$site_dir}");
+        $command->arg($this->getProvision()->getInput()->getOption("ansi")? '--ansi': '');
+
+        // Allow dynamic options to be passed to the install command.
+        $options = $this->getProvision()->getInput()->getOption('option');
+        foreach ($options as $option) {
+            $command->arg($option);
+        }
+
+        $cmd = $command->getCommand();
+
+        if (!$this->getProvision()->getInput()->getOption('skip-verify')) {
+            $steps = $this->verify();
+        }
+
+        $steps['site.install'] = Provision::newStep()
+            ->start("Installing Drupal with the '{$this->getProperty('profile')}' profile...")
+            ->execute(function () use ($cmd, $site, $root) {
+                // Site install script output is important, so we force verbosity.... I think
+                // @TODO: drush site-install returns non-zero exit code!
+                return $site->getService('http')->provider->shell_exec($cmd, $root, 'exit', self::FORCE_VERBOSE_INSTALL) | 0;
+            });
+
+        return $steps;
+
+    }
+
     /**
      * Return a list of folders to create in the Drupal root.
      *

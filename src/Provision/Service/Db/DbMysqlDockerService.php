@@ -54,7 +54,8 @@ class DbMysqlDockerService extends DbMysqlService implements DockerServiceInterf
 
             // Recommended way to enable UTF-8 for Drupal.
             // See https://www.drupal.org/node/2754539
-            'command' => 'mysqld --innodb-large-prefix --innodb-file-format=barracuda --innodb-file-per-table',
+            // @TODO: The latest mariadb does NOT support this! We need to determine specific docker image tags to fix this.
+            // 'command' => 'mysqld --innodb-large-prefix --innodb-file-format=barracuda --innodb-file-per-table',
         );
 
         // if the user entered no port, don't add ports array. If we do, a random public port is assigned.
@@ -107,7 +108,10 @@ class DbMysqlDockerService extends DbMysqlService implements DockerServiceInterf
         $timeout = $this->getProvision()->getConfig()->get('database_wait_timeout', 30);
         while (true) {
             try {
-                $this->provider->shell_exec($command);
+                $output = $this->provider->shell_exec($command, NULL, 'stdout');
+                if (strpos($output, "Access denied for user") !== FALSE) {
+                    throw new \Exception($output);
+                }
                 break;
             } catch (\Exception $e) {
                 // If docker client can't connect, bail and pass the error through to the exeception.
@@ -118,6 +122,11 @@ class DbMysqlDockerService extends DbMysqlService implements DockerServiceInterf
                 // If we hit our timeout while waiting for container, bail out.
                 if (time() - $start > $timeout) {
                     throw new \Exception('Timed out waiting for database Docker container.');
+                }
+
+                // If root user cannot connect for some reason, bail out.
+                if (strpos($e->getMessage(), "Access denied for user") !== FALSE) {
+                    throw new \Exception($e->getMessage());
                 }
 
                 // Otherwise, print a waiting dot and try again.
@@ -221,7 +230,37 @@ class DbMysqlDockerService extends DbMysqlService implements DockerServiceInterf
         }
     }
 
-//
+    /**
+     * Override the existing server because we can't check connectivity until
+     * ServerContextDockerCompose::postVerify() runs.
+     */
+    public function verifyServer() {
+        return [];
+    }
+
+    /**
+     * @return array
+     */
+    public function postVerifyServer() {
+        return parent::verifyServer();
+    }
+
+    /**
+     * Override the existing server because we can't check connectivity until
+     * ServerContextDockerCompose::postVerify() runs.
+     */
+    public function verifySite() {
+        return [];
+    }
+
+    /**
+     * @return array
+     */
+    public function postVerifySite() {
+        return parent::verifySite();
+    }
+
+    //
 //    use DockerContainerTrait;
 //
 //    /**

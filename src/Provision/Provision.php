@@ -10,6 +10,8 @@ use Aegir\Provision\Console\ConsoleOutput;
 use Aegir\Provision\Console\ProvisionStyle;
 use Aegir\Provision\Console\ArgvInput;
 use Aegir\Provision\Context\ServerContext;
+use Aegir\Provision\Context\ServerContextLocal;
+use Aegir\Provision\Context\ServerContextDockerCompose;
 use Aegir\Provision\Robo\ProvisionCollectionBuilder;
 use Aegir\Provision\Robo\ProvisionExecutor;
 use Aegir\Provision\Robo\ProvisionTasks;
@@ -185,7 +187,11 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
 
             // Load Context classes from files metadata.
             foreach ($this->context_files as $context) {
-                $class = Context::getClassName($context['type']);
+                $class = Context::getClassFromFilename($context['file']->getPathname());
+
+                if (!class_exists($class)) {
+                    throw new \Exception("Context configuration for '{$context['name']}' specifies a missing class: {$class}.  Check your configuration and try again: {$context['file']->getPathname()}");
+                }
                 $this->contexts[$context['name']] = new $class($context['name'], $this);
             }
         }
@@ -389,12 +395,14 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
      * Get a simple array of all contexts, for use in an options list.
      * @return array
      */
-    public function getAllContextsOptions($type = NULL) {
+    public function getAllContextsOptions($types = array()) {
         $options = [];
         foreach ($this->getAllContexts() as $name => $context) {
-            if ($type) {
-                if ($context->type == $type) {
-                    $options[$name] = $context->name;
+            if (!empty($types)) {
+                foreach ($types as $type) {
+                    if ($context->type == $type) {
+                        $options[$name] = $context->name;
+                    }
                 }
             }
             else {
@@ -413,11 +421,13 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
      * @throws \Exception
      */
     public function getContext($name) {
+        $name = ltrim($name, '@');
+
         // Check if $name is empty.
         if (empty($name)) {
             throw new \Exception('Context name must not be empty.');
         }
-        
+
         // If context exists but hasn't been loaded, load it.
         if (empty($this->contexts[$name]) && !empty($this->context_files[$name])) {
             $this->loadContext($name);
