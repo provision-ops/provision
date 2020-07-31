@@ -6,7 +6,7 @@
     "type": "project",
     "license": "GPL-2.0+",
     "require": {
-        "consolidation/Robo": "dev-block-output",
+        "consolidation/robo": "dev-block-output",
         "consolidation/annotated-command": "~2",
         "drupal/console-core": "1.0.2",
         "drush/drush": "8.x",
