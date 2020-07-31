@@ -3,7 +3,7 @@
     "description": "The Website Provisioning CLI",
     "keywords": ["Hosting", "Drupal", "Aegir"],
     "homepage": "https://github.com/provision4/provision",
-    "type": "project",
+    "type": "library",
     "license": "GPL-2.0+",
     "require": {
         "consolidation/robo": "dev-block-output",
