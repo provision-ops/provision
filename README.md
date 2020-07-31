@@ -1,4 +1,4 @@
-# Introduction
+# Provision CLI
 
 ![](assets/server-verify.png)
 
