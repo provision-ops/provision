@@ -121,17 +121,17 @@ class Config extends ProvisionConfig
             ]);
 
             // Tell the user how to change the config path. Change language if they already have the .provision.yml file.
-            if (file_exists($this->get('console_config_path'))) {
-                $this->io->commentBlock([
-                    'If you would like to change the default Config Path, create a file ' . $this->get('console_config_file') . ' and add:',
-                    '    config_path: /path/to/my/provision/config'
+            if (file_exists($this->get('console_config_file'))) {
+              $this->get('config_path');
+              $this->io->commentBlock([
+                    'You already have a provision config file: ' . $this->get('console_config_file'),
+                    '  config_path: ' . $this->get('config_path'),
+                    'If needed, change the config_path to your desired location.'
                 ]);
             }
             else {
-                $this->io->block([
-                    'Tip: If you would like to change the default Config Path, add the following to the file ' . $this->get('console_config_file'),
-                    '    config_path: /path/to/my/provision/config'
-                ], NULL, 'fg=blue');
+                $this->config->set('config_path', $this->io()->ask('Where would you like to store Provision config?',  $this->get('config_path')));
+                $this->config->set('contexts_path', $this->io()->ask('Where would you like to store Provision context data?',  $this->get('contexts_path')));
             }
 
             // Offer to create the folder for the user.
