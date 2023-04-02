@@ -21,7 +21,7 @@
             "url": "git@github.com:provision4/Robo.git"
         }
     ],
-    "bin": ["bin/provision"],
+    "bin": ["provision"],
     "authors": [
         {
             "name":     "Provision Contributors",
