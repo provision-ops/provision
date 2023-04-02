@@ -152,7 +152,8 @@ class Application extends BaseApplication
         $commands[] = new ListCommand();
         $commands[] = new SaveCommand();
         $commands[] = new EditCommand();
-        $commands[] = new SetupCommand();
+        // @TODO: Decide if we want to fix setup command.
+        // $commands[] = new SetupCommand();
         $commands[] = new ServicesCommand();
         $commands[] = new ShellCommand();
         $commands[] = new StatusCommand();
