@@ -66,7 +66,7 @@ class StatusCommand extends Command
                 }
                 $this->io->table($headers, $rows);
                 $this->getProvision()->getLogger()->info('You can modify your console configuration using the file {path}', [
-                    'path ' => $this->getProvision()->getConfig()->get('console_config_path'),
+                    'path ' => $this->getProvision()->getConfig()->get('console_config_file'),
                 ]);
             }
 
