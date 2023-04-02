@@ -18,7 +18,6 @@ if (file_exists($autoloadFile = __DIR__ . '/vendor/autoload.php')
 
 use Aegir\Provision\Console\ConsoleOutput;
 use Aegir\Provision\Console\Config;
-use Aegir\Provision\Common\NotSetupException;
 
 use Aegir\Provision\Console\ProvisionStyle;
 use Robo\Common\TimeKeeper;
@@ -35,30 +34,9 @@ try {
     $input = new ArgvInput($argv);
     $output = new ConsoleOutput();
     $io = new ProvisionStyle($input, $output);
-
-    // Try to load config. If there are no files detected, Config::__construct()
-    // will throw a NotSetupException.
-    // When that happens, run the 'setup' command instead of whatever command was run by overriding $argv.
-    try {
-        // Create a config object.
-        $config = new Config($io);
-    }
-    catch (NotSetupException $e) {
-
-        if ($e->getMessage()) {
-            $io->warningLite('There were problems detected with your system: ');
-
-            $io->outputBlock($e->getMessage());
-
-            $io->warningLite(' Running `provision setup` command to fix the problems... ');
-        }
-
-
-        $argv = [$argv[0], 'setup'];
-        $input = new ArgvInput($argv);
-        $io = new ProvisionStyle($input, $output);
-        $config = new Config($io, FALSE);
-    }
+    
+    // Create a config object.
+    $config = new Config($io);
     
     // Create the app.
     $provision = new \Aegir\Provision\Provision($config, $input, $output);

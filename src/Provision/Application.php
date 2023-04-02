@@ -6,7 +6,6 @@ use Aegir\Provision\Command\CdCommand;
 use Aegir\Provision\Command\EditCommand;
 use Aegir\Provision\Command\SaveCommand;
 use Aegir\Provision\Command\ServicesCommand;
-use Aegir\Provision\Command\SetupCommand;
 use Aegir\Provision\Command\ShellCommand;
 use Aegir\Provision\Command\StatusCommand;
 use Aegir\Provision\Command\Ui\CreateUiCommand;
