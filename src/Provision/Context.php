@@ -1013,10 +1013,10 @@ class Context implements BuilderAwareInterface
     $tmp_output_file = tempnam($tmpdir, 'task.' . $datestamp . '.output.');
     $tmp_error_file = tempnam($tmpdir, 'task.' . $datestamp . '.error.');
 
-    $effective_wd = $dir? $dir:
+    $effective_wd = $dir ?? (
       $this->type == 'server'? $this->getProperty('server_config_path'):
       $this->getProperty('root')
-    ;
+    );
 
     if ($this->getProvision()->getOutput()->isVerbose() || $force_verbose) {
       $this->getProvision()->io()->commandBlock($command, $effective_wd);
