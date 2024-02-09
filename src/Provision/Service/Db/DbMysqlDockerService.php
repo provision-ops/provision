@@ -54,7 +54,8 @@ class DbMysqlDockerService extends DbMysqlService implements DockerServiceInterf
 
             // Recommended way to enable UTF-8 for Drupal.
             // See https://www.drupal.org/node/2754539
-            'command' => 'mysqld --innodb-large-prefix --innodb-file-format=barracuda --innodb-file-per-table',
+            // @TODO: The latest mariadb does NOT support this! We need to determine specific docker image tags to fix this.
+            // 'command' => 'mysqld --innodb-large-prefix --innodb-file-format=barracuda --innodb-file-per-table',
         );
 
         // if the user entered no port, don't add ports array. If we do, a random public port is assigned.

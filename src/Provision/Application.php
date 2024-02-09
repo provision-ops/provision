@@ -3,13 +3,16 @@
 namespace Aegir\Provision;
 
 use Aegir\Provision\Command\CdCommand;
-use Aegir\Provision\Command\DrushCommand;
+use Aegir\Provision\Command\EditCommand;
 use Aegir\Provision\Command\SaveCommand;
 use Aegir\Provision\Command\ServicesCommand;
 use Aegir\Provision\Command\SetupCommand;
 use Aegir\Provision\Command\ShellCommand;
 use Aegir\Provision\Command\StatusCommand;
+use Aegir\Provision\Command\Ui\CreateUiCommand;
+use Aegir\Provision\Command\Ui\UiCreateCommand;
 use Aegir\Provision\Command\VerifyCommand;
+use Aegir\Provision\Command\InstallCommand;
 use Aegir\Provision\Common\ProvisionAwareTrait;
 use Aegir\Provision\Console\Config;
 use Aegir\Provision\Console\ConsoleOutput;
@@ -146,15 +149,17 @@ class Application extends BaseApplication
     protected function getDefaultCommands()
     {
         $commands[] = new CdCommand();
-        $commands[] = new DrushCommand();
         $commands[] = new HelpCommand();
         $commands[] = new ListCommand();
         $commands[] = new SaveCommand();
+        $commands[] = new EditCommand();
         $commands[] = new SetupCommand();
         $commands[] = new ServicesCommand();
         $commands[] = new ShellCommand();
         $commands[] = new StatusCommand();
         $commands[] = new VerifyCommand();
+        $commands[] = new InstallCommand();
+//        $commands[] = new UiCreateCommand();
 
         return $commands;
     }

@@ -20,6 +20,11 @@ ARG IMAGE_NAME=http
 ARG IMAGE_TAG=php7
 FROM provision4/$IMAGE_NAME:$IMAGE_TAG
 USER root
+
+RUN echo "$RUN_PREFIX Creating set-user-ids script..."
+COPY set-user-ids.sh /usr/local/bin/set-user-ids
+RUN chmod +x /usr/local/bin/set-user-ids
+
 ARG PROVISION_USER_UID=1000
 ENV PROVISION_USER_UID ${PROVISION_USER_UID:-1001}
 ARG PROVISION_WEB_UID=1001

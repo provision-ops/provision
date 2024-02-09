@@ -1,4 +1,4 @@
-# Introduction
+# Provision CLI
 
 ![](assets/server-verify.png)
 
@@ -20,7 +20,7 @@ You add your site's URLs and path to your source code using `provision save`and 
 
 ## Development
 
-Provision 4.x is a work in progress. If you want open source Drupal hosting now, please see [the Aegir Project](https://www.aegirproject.org/).
+Provision 4.x is a work in progress. If you want open source Drupal hosting now, please see [DevShop](https://www.getdevshop.com/) and [the Aegir Project](https://www.aegirproject.org/).
 
 Currently being developed on GitHub: [github.com/provision4/provision](https://github.com/provision4/provision).
 

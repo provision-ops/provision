@@ -131,9 +131,18 @@ class DbService extends Service implements ServiceInterface
     static function site_options()
     {
         return [
-            'db_name' => 'The name of the database. Default: Automatically generated.',
-            'db_user' => 'The username used to access the database. Default: Automatically generated.',
-            'db_password' => 'The password used to access the database. Default: Automatically generated.',
+            'db_name' => Provision::newProperty('The name of the database. Default: Automatically generated.')
+                ->defaultValue(function () {
+                   return uniqid('db_name_');
+                }),
+            'db_user' => Provision::newProperty('The username used to access the database. Default: Automatically generated.')
+                ->defaultValue(function () {
+                    return uniqid('db_user_');
+                }),
+            'db_password' => Provision::newProperty('The password used to access the database. Default: Automatically generated.')
+                ->defaultValue(function () {
+                    return uniqid('db_password_');
+                }),
         ];
     }
     

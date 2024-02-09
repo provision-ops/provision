@@ -394,12 +394,14 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
      * Get a simple array of all contexts, for use in an options list.
      * @return array
      */
-    public function getAllContextsOptions($type = NULL) {
+    public function getAllContextsOptions($types = array()) {
         $options = [];
         foreach ($this->getAllContexts() as $name => $context) {
-            if ($type) {
-                if ($context->type == $type) {
-                    $options[$name] = $context->name;
+            if (!empty($types)) {
+                foreach ($types as $type) {
+                    if ($context->type == $type) {
+                        $options[$name] = $context->name;
+                    }
                 }
             }
             else {
@@ -418,11 +420,13 @@ class Provision implements ConfigAwareInterface, ContainerAwareInterface, Logger
      * @throws \Exception
      */
     public function getContext($name) {
+        $name = ltrim($name, '@');
+
         // Check if $name is empty.
         if (empty($name)) {
             throw new \Exception('Context name must not be empty.');
         }
-        
+
         // If context exists but hasn't been loaded, load it.
         if (empty($this->contexts[$name]) && !empty($this->context_files[$name])) {
             $this->loadContext($name);

@@ -1,13 +1,12 @@
 {
-    "name": "provision4/cli",
+    "name": "provision-ops/cli",
     "description": "The Website Provisioning CLI",
     "keywords": ["Hosting", "Drupal", "Aegir"],
     "homepage": "https://github.com/provision4/provision",
-    "type": "project",
+    "type": "library",
     "license": "GPL-2.0+",
     "require": {
-        "aegir/provision": "dev-7.x-3.x",
-        "consolidation/Robo": "dev-block-output",
+        "consolidation/robo": "dev-block-output",
         "consolidation/annotated-command": "~2",
         "drupal/console-core": "1.0.2",
         "drush/drush": "8.x",
@@ -49,10 +48,5 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {"Aegir\\Provision\\": "src/Provision"}
-    },
-    "scripts": {
-        "post-install-cmd": [
-            "Aegir\\Provision\\Console\\ComposerScripts::writeDrushRcForVendorDrushDrush"
-        ]
     }
 }

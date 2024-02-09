@@ -145,6 +145,11 @@ class ServicesCommand extends Command
 //        }
         $this->sub_command = $input->getArgument('sub_command');
 
+        // Ensure '@context' names can be used: Trim the "@"
+        if ($input->getArgument('server')) {
+          $input->setArgument('server', ltrim($input->getArgument('server'), '@'));
+        }
+
         parent::initialize(
             $input,
             $output
@@ -220,7 +225,7 @@ class ServicesCommand extends Command
             }
 
             if ($this->context->hasService($service)) {
-                $this->getProvision()->io()->helpBlock("Editing service {$service} provded by server '{$this->context->name}'...", ProvisionStyle::ICON_EDIT);
+                $this->getProvision()->io()->helpBlock("Editing service {$service} provided by server '{$this->context->name}'...", ProvisionStyle::ICON_EDIT);
             }
 
             // Then ask for all options.

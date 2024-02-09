@@ -36,6 +36,7 @@ class HttpApacheService extends HttpService
   {
     $configs['server'][] = ServerConfigFile::class;
     $configs['platform'][] = PlatformConfigFile::class;
+    $configs['site'][] = PlatformConfigFile::class;
     $configs['site'][] = SiteConfigFile::class;
     return $configs;
   }

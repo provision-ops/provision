@@ -37,8 +37,11 @@ class DockerComposeEngine implements EngineInterface {
     public function preVerify() {
         $steps = [];
         $filename = $this->server->getProperty('server_config_path') . DIRECTORY_SEPARATOR . 'docker-compose.yml';
+        $compose_services = [];
 
-      // Write docker-compose.yml file.
+      // Write docker-compose.yml file, only if there are services
+      if (!empty($this->server->getServices())) {
+
       $steps['docker.compose.write'] = Provision::newStep()
         ->start('Generating docker-compose.yml file...')
         ->success('Generating docker-compose.yml file... Saved to ' . $filename)
@@ -117,12 +120,18 @@ YML;
           $env_file_path = $this->server->getProperty('server_config_path') . '/.env';
           $env_custom_path = $this->server->getProperty('server_config_path') . '/.env-custom';
           $env_custom = file_exists($env_custom_path)? '# LOADED FROM .env-custom: ' . PHP_EOL . file_get_contents($env_custom_path): '';
+
+          $provision_user_uid = $this->server->getProvision()->getConfig()->get('script_uid');
+          $provision_web_uid = $this->server->getProvision()->getConfig()->get('web_user_uid');
+
           $env_file_contents = <<<ENV
 # Provision-generated file. Do not edit.
 # Add a file .env-custom and it will be included here on `provision-verify`
 # For available docker-compose env vars, see https://docs.docker.com/compose/reference/envvars/
 COMPOSE_PATH_SEPARATOR=:
 COMPOSE_FILE=$dc_files_path
+PROVISION_USER_UID=$provision_user_uid
+PROVISION_WEB_UID=$provision_web_uid
 $env_custom
 ENV;
           $this->server->fs->dumpFile($env_file_path, $env_file_contents);
@@ -130,6 +139,7 @@ ENV;
           $this->server->getProvision()->getTasks()->taskLog($debug_message, LogLevel::INFO)->run()->getExitCode();
         });
 
+      }
         return $steps;
     }
 
@@ -192,5 +202,33 @@ ENV;
 
         $command = "{$docker_compose} {$command} {$options}";
         return $command;
+    }
+
+    /**
+     * Return flags for docker volumes based on the system.
+     *
+     * If mac, use "delegated".
+     * If selinux, use "z".
+     * Otherwise, use provision console config 'docker_volume_flags'.
+     *
+     * Includes the ":" prefix, if any flag is found.
+     */
+    public function getVolumeFlags() {
+
+        // For macOS, use 'delegated', the fasted mode. See https://docs.docker.com/storage/bind-mounts/#configure-mount-consistency-for-macos
+        if ($this->server->getProvision()->getConfig()->get('os_version') == 'Darwin') {
+            $default_flag = 'delegated';
+        }
+        // For SELinux-enabled systems, use 'v'.  See https://docs.docker.com/storage/bind-mounts/#configure-the-selinux-label
+        elseif (exec('sestatus | grep status | grep enabled', $output, $exit) && $exit == 0) {
+            $default_flag = 'z';
+        }
+        else {
+            $default_flag = '';
+        }
+
+       $volume_flag = $this->server->getProvision()->getConfig()->get('docker_volume_flags', $default_flag);
+
+       return $volume_flag? ':' . $volume_flag: '';
     }
 }

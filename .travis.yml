@@ -150,5 +150,3 @@ script:
 
   - provision -n -v
   - provision status -n
-  - bin/drush sa
-  - bin/drush --filter=provision

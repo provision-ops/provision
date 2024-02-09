@@ -83,6 +83,21 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
                         }
                         return $remote_host;
                   }),
+            'ip_addresses' =>
+                Provision::newProperty()
+                    ->description('server: IP Addresses')
+                    ->required(FALSE)
+                    ->validate(function($ip_addresses) {
+                        $ips = explode(',', $ip_addresses);
+                        foreach ($ips as $ip) {
+                            // If remote_host doesn't resolve to anything, warn the user.
+                            if (!ServerContext::valid_ip($ip)) {
+                                throw new \RuntimeException("IP $ip is invalid.");
+                            }
+                        }
+                        // @TODO: Figure out how to allow array values in service configs.
+                        return implode(',', $ips);
+                    }),
             'script_user' =>
                 Provision::newProperty()
                     ->description('server: OS user name')
@@ -106,5 +121,18 @@ class ServerContext extends ServiceProvider implements ConfigurationInterface
                     ->hidden()
             ,
         ];
+    }
+
+    /**
+     * Check if a hostname provided is an ip address.
+     *
+     * @param string $hostname
+     *   The hostname to check.
+     *
+     * @return bool
+     *   TRUE is the $hostname is a valid IP address, FALSE otherwise.
+     */
+    static function valid_ip($hostname) {
+      return is_string(inet_pton($hostname));
     }
 }
