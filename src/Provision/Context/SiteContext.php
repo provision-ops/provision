@@ -236,9 +236,9 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
                 // @TODO: Might want to do chgrp verification inside container?
 
                     $dir = "$site_path/files";
-                    $user = $this->getProvision()->getConfig()->get('web_user');
-                    $this->getProvision()->getLogger()->info("Running chgrp {$dir} {$user}");
-                    $this->fs->chgrp($dir, $user);
+//                    $user = $this->getProvision()->getConfig()->get('web_user');
+//                    $this->getProvision()->getLogger()->warning("Running chgrp {$dir} {$user}");
+//                    $this->fs->chgrp($dir, $user);
 
                     // Copy Drupal's default settings.php file into place.
                     if (!$this->fs->exists("$site_path/settings.php")) {
@@ -246,7 +246,7 @@ class SiteContext extends PlatformContext implements ConfigurationInterface
                     }
 
                     $this->fs->chmod("$site_path/settings.php", 02770);
-                    $this->fs->chgrp("$site_path/settings.php", $this->getProvision()->getConfig()->get('web_user'));
+//                    $this->fs->chgrp("$site_path/settings.php", $this->getProvision()->getConfig()->get('web_user'));
 
             });
         return $steps;
