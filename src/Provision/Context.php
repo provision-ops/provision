@@ -714,16 +714,16 @@ class Context implements BuilderAwareInterface
                     $this->addStepToCollection($collection, $title, $task, $service);
                 }
             }
-        }
-        // Add postVerify() tasks to the collection.
-        if (method_exists($service, $postVerifyMethod)) {
-            $postTasks = $this->{$postVerifyMethod}();
-            if (count($postTasks)) {
-                $this->addStepToCollection($collection, 'logging.post', function () use ($friendlyName, $type) {
-                    $this->getProvision()->io()->section("Verify server: Finalize");
-                });
+            // Add postVerify() tasks to the collection.
+            if (method_exists($service, $postVerifyMethod)) {
+                $postTasks = $this->{$postVerifyMethod}();
+                if (count($postTasks)) {
+                    $this->addStepToCollection($collection, 'logging.post', function () use ($friendlyName, $type) {
+                      $this->getProvision()->io()->section("Verify server: Finalize");
+                    });
 
-                $this->prepareSteps($collection, $this->{$postVerifyMethod}());
+                    $this->prepareSteps($collection, $this->{$postVerifyMethod}());
+                }
             }
         }
         $result = $collection->run();
