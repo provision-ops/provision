@@ -272,7 +272,7 @@ class HttpApacheDockerService extends HttpApacheService implements DockerService
         $volumes = array();
 
         $config_path_host = $config_path_container = $this->provider->getProperty('server_config_path');
-        $volumes[] = "{$config_path_host}:/var/provision/config/{$this->provider->name}{$this->provider->dockerCompose->getVolumeFlags()}";
+        $volumes[] = "{$config_path_host}:/var/provision/config/{$this->provider->name}{$this->provider->engine->getVolumeFlags()}";
 
 //        $platforms_path_host = $platforms_path_container = d()->http_platforms_path;
 //
@@ -296,7 +296,7 @@ class HttpApacheDockerService extends HttpApacheService implements DockerService
         foreach ($contexts as $context) {
             if ($context instanceof ServiceSubscriber && $context->hasSubscription('http') && $context->getSubscription('http')->server->name == $this->provider->name) {
                 $container_path = $this->mapContainerPath($context->getProperty('root'));
-                $volumes[$container_path] = $context->getProperty('root') . ':' . $container_path . $this->provider->dockerCompose->getVolumeFlags();
+                $volumes[$container_path] = $context->getProperty('root') . ':' . $container_path . $this->provider->engine->getVolumeFlags();
             }
         }
 
